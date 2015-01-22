@@ -1,0 +1,29 @@
+{
+  "name": "SnakeMatch",
+  "version": "0.0.1",
+  "description": "An online snake game server",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ValYouW/SnakeMatch.git"
+  },
+  "author": "ValYouW",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ValYouW/SnakeMatch/issues"
+  },
+  "homepage": "https://github.com/ValYouW/SnakeMatch",
+  "dependencies": {
+    "restify": "^2.8.4",
+    "ws": "^0.7.0",
+    "idgen": "^2.0.2"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-concat": "^0.5.0"
+  }
+}
