@@ -1,26 +1,29 @@
-var WebSocketServer = require("ws").Server,
-	restify = require("restify");
+var WebSocketServer = require('ws').Server,
+	restify = require('restify');
 
+// Create the server and listen on port 3000
 var server = restify.createServer();
 server.listen(3000, function () {
-	console.log('socket.io server listening at %s', server.url);
+	console.log('Server listening at %s', server.url);
 });
 
-server.get('/public', restify.serveStatic({
+// Set the route for the static files
+server.get('/public', restify.serveStSatic({
 	directory: __dirname,
 	default: 'index.html'
 }));
 
+// Create the WebSocket server
 var wss = new WebSocketServer({server: server});
-wss.on("connection", function(ws) {
+wss.on('connection', function(ws) {
 	var id = setInterval(function() {
-		ws.send(JSON.stringify(new Date()), function() {  })
+		ws.send(JSON.stringify(new Date()));
 	}, 1000);
 
-	console.log("websocket connection open");
+	console.log('websocket connection open');
 
-	ws.on("close", function() {
-		console.log("websocket connection close");
-		clearInterval(id)
-	})
+	ws.on('close', function() {
+		console.log('websocket connection close');
+		clearInterval(id);
+	});
 });

@@ -12,12 +12,7 @@ window.VYW = window.VYW || {};
 		this.canvas = canvas;
 		this.graphics = new VYW.Graphics(canvas);
 		this.settings = new VYW.GameSettings(settings);
-
-		this.gameState = VYW.GameState.Paused;
-		this.direction = VYW.Direction.Right;
-		this.snake = [];
-		this.pellets = [];
-		this.board = new VYW.Board(this.canvas.width, this.canvas.height, this.settings.boxSize, this.settings.boardColor);
+		this.gameTimer = null;
 
 		// Bind to the window key-down event
 		win.onkeydown = this.handleKeyDown.bind(this);
@@ -26,7 +21,18 @@ window.VYW = window.VYW || {};
 	/**
 	 * Starts the game
 	 */
-	SnakeEngine.prototype.start = function() {
+	SnakeEngine.prototype.start = function(settings) {
+		// Check if we got new settings
+		this.settings = settings ? new VYW.GameSettings(settings) : this.settings;
+
+		// Reset the game state/objects
+		clearTimeout(this.gameTimer);
+		this.gameState = VYW.GameState.Paused;
+		this.direction = VYW.Direction.Right;
+		this.snake = [];
+		this.pellets = [];
+		this.board = new VYW.Board(this.canvas.width, this.canvas.height, this.settings.boxSize, this.settings.boardColor);
+
 		// Create the snake head, we create it vertically centered
 		var startX = this.settings.boxSize * this.settings.initialSnakeSize;
 		var startY = this.board.toScreen(this.board.verticalBoxes / 2);
@@ -40,14 +46,16 @@ window.VYW = window.VYW || {};
 			this.snake.push(snakePart);
 		}
 
+		this.toggleGameState(false);
 		// Set the game state to running and run the timer
-		this.gameState = VYW.GameState.Running;
-		setTimeout(this.update.bind(this), REFRESH_RATE);
+		//this.gameState = VYW.GameState.Running;
+		//this.gameTimer = setTimeout(this.update.bind(this), REFRESH_RATE);
 	};
 
 	/**
 	 * Toggle the game state
 	 * @param {boolean} gameOver - Whether the game is over
+	 * @private
 	 */
 	SnakeEngine.prototype.toggleGameState = function(gameOver) {
 		// If game over just color the canvas
@@ -71,6 +79,7 @@ window.VYW = window.VYW || {};
 
 	/**
 	 * Starts the game update process
+	 * @private
 	 */
 	SnakeEngine.prototype.update = function() {
 		if (this.gameState !== VYW.GameState.Running) {
@@ -103,12 +112,13 @@ window.VYW = window.VYW || {};
 		}
 
 		// Reload the timer
-		setTimeout(this.update.bind(this), REFRESH_RATE);
+		this.gameTimer = setTimeout(this.update.bind(this), REFRESH_RATE);
 	};
 
 	/**
 	 * Checks if the snake collides with itself ot out-of-bounds
 	 * @returns {boolean} Whether there was a collision
+	 * @private
 	 */
 	SnakeEngine.prototype.checkCollision = function() {
 		// Check if the head is out-of-bounds
@@ -132,6 +142,7 @@ window.VYW = window.VYW || {};
 
 	/**
 	 * Check if the snake eats a pellet, add new ones if necessary
+	 * @private
 	 */
 	SnakeEngine.prototype.eatAndAddPellet = function() {
 		// Check if the snake head collides with pellet
@@ -156,6 +167,7 @@ window.VYW = window.VYW || {};
 
 	/**
 	 * Adds a new pellet to the game
+	 * @private
 	 */
 	SnakeEngine.prototype.addPellet = function() {
 		// Keep loop until we found a spot for a pellet (theoretically this can turn into an infinite loop, so a solution could
