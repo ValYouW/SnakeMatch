@@ -29,27 +29,16 @@ window.VYW = window.VYW || {};
 		clearTimeout(this.gameTimer);
 		this.gameState = VYW.GameState.Paused;
 		this.direction = VYW.Direction.Right;
-		this.snake = [];
 		this.pellets = [];
 		this.board = new VYW.Board(this.canvas.width, this.canvas.height, this.settings.boxSize, this.settings.boardColor);
 
 		// Create the snake head, we create it vertically centered
 		var startX = this.settings.boxSize * this.settings.initialSnakeSize;
 		var startY = this.board.toScreen(this.board.verticalBoxes / 2);
-		var snakePart = new VYW.SnakeHead(startX, startY, this.settings.boxSize, this.settings.snakeColor);
-		this.snake.push(snakePart);
-
-		// Create the initial snake body
-		for (var i = 0; i < this.settings.initialSnakeSize-1; ++i) {
-			startX -= this.settings.boxSize;
-			snakePart = new VYW.SnakeBody(startX, startY, this.settings.boxSize, this.settings.snakeColor, this.snake[this.snake.length-1]);
-			this.snake.push(snakePart);
-		}
+		this.snake = new VYW.Snake(startX, startY, this.settings.boxSize, this.settings.initialSnakeSize, this.settings.snakeColor);
 
 		this.toggleGameState(false);
-		// Set the game state to running and run the timer
-		//this.gameState = VYW.GameState.Running;
-		//this.gameTimer = setTimeout(this.update.bind(this), REFRESH_RATE);
+		this.update();
 	};
 
 	/**
@@ -60,20 +49,18 @@ window.VYW = window.VYW || {};
 	SnakeEngine.prototype.toggleGameState = function(gameOver) {
 		// If game over just color the canvas
 		if (gameOver) {
-			this.canvas.style.borderColor = 'red';
+			this.board.borderColor = '#ff0000';
 			this.gameState = VYW.GameState.End;
 			return;
 		}
 
 		// Toggle between Pause/Running
 		if (this.gameState === VYW.GameState.Running) {
-			this.canvas.style.borderColor = 'orange';
+			this.board.borderColor = '#ff6900';
 			this.gameState = VYW.GameState.Paused;
 		} else if (this.gameState === VYW.GameState.Paused) {
-			this.canvas.style.borderColor = 'green';
+			this.board.borderColor = '#00ff00';
 			this.gameState = VYW.GameState.Running;
-			// Important to call update as there is no Timer running
-			this.update();
 		}
 	};
 
@@ -82,18 +69,16 @@ window.VYW = window.VYW || {};
 	 * @private
 	 */
 	SnakeEngine.prototype.update = function() {
+		// Reload the timer
+		this.gameTimer = setTimeout(this.update.bind(this), REFRESH_RATE);
+
 		if (this.gameState !== VYW.GameState.Running) {
+			this.draw();
 			return;
 		}
 
-		// Draw the board first
-		this.board.draw(this.graphics);
-
-		// Update snake location and draw it
-		for (var i = 0; i < this.snake.length; ++i) {
-			this.snake[i].update(this.direction);
-			this.snake[i].draw(this.graphics);
-		}
+		// Update snake
+		this.snake.update(this.direction);
 
 		// Check if the snake collides with itself or out-of-bounds
 		var collision = this.checkCollision();
@@ -105,14 +90,21 @@ window.VYW = window.VYW || {};
 		// Check if the snake eats a pellet
 		this.eatAndAddPellet();
 
+		// Draw the game
+		this.draw();
+	};
+
+	/**
+	 * Draws the game
+	 */
+	SnakeEngine.prototype.draw = function() {
+		this.board.draw(this.graphics);
+		this.snake.draw(this.graphics);
+
 		// Draw the pellets
-		for (i = 0; i < this.pellets.length; ++i) {
-			this.pellets[i].update();
+		for (var i = 0; i < this.pellets.length; ++i) {
 			this.pellets[i].draw(this.graphics);
 		}
-
-		// Reload the timer
-		this.gameTimer = setTimeout(this.update.bind(this), REFRESH_RATE);
 	};
 
 	/**
@@ -122,17 +114,17 @@ window.VYW = window.VYW || {};
 	 */
 	SnakeEngine.prototype.checkCollision = function() {
 		// Check if the head is out-of-bounds
-		if (this.snake[0].location.x < 0 ||
-			this.snake[0].location.y < 0 ||
-			this.snake[0].location.x + this.snake[0].size > this.canvas.width ||
-			this.snake[0].location.y + this.snake[0].size > this.canvas.height) {
+		if (this.snake.parts[0].location.x < 0 ||
+			this.snake.parts[0].location.y < 0 ||
+			this.snake.parts[0].location.x + this.snake.parts[0].size > this.canvas.width ||
+			this.snake.parts[0].location.y + this.snake.parts[0].size > this.canvas.height) {
 
 			return true;
 		}
 
 		// Check if the snake head collides with body
-		for (var i = 1; i < this.snake.length; ++i) {
-			if (this.snake[0].location.equals(this.snake[i].location)) {
+		for (var i = 1; i < this.snake.parts.length; ++i) {
+			if (this.snake.parts[0].location.equals(this.snake.parts[i].location)) {
 				return true;
 			}
 		}
@@ -147,11 +139,9 @@ window.VYW = window.VYW || {};
 	SnakeEngine.prototype.eatAndAddPellet = function() {
 		// Check if the snake head collides with pellet
 		for (var i = 0; i < this.pellets.length; ++i) {
-			if (this.snake[0].location.equals(this.pellets[i].location)) {
-				// Create a SnakePart that would be the new snake tail
-				var currTail = this.snake[this.snake.length-1];
-				var newSnakeTail = new VYW.SnakeBody(currTail.prevLocation.x, currTail.prevLocation.y, this.settings.boxSize, this.settings.snakeColor, currTail);
-				this.snake.push(newSnakeTail);
+			if (this.snake.parts[0].location.equals(this.pellets[i].location)) {
+				// Add tail to the snake
+				this.snake.addTail();
 
 				// Remove this pellet
 				this.pellets.splice(i, 1);
@@ -184,8 +174,8 @@ window.VYW = window.VYW || {};
 			var pellet = new VYW.Pellet(x, y, this.settings.boxSize, this.settings.pelletColor);
 
 			// check if the spot is vacant
-			for (var i = 0; i < this.snake.length; ++i) {
-				if (this.snake[i].location.equals(pellet.location)) {
+			for (var i = 0; i < this.snake.parts.length; ++i) {
+				if (this.snake.parts[i].location.equals(pellet.location)) {
 					keepSearch = true;
 					break;
 				}

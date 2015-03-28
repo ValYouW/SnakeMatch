@@ -16,6 +16,10 @@ window.VYW = window.VYW || {};
 	// Inherit from SnakePart
 	VYW.inherits(SnakeHead, VYW.SnakePart);
 
+	/**
+	 * Updates the snake head
+	 * @param {VYW.Direction} newDirection - A new direction for the snake
+	 */
 	SnakeHead.prototype.update = function(newDirection) {
 		// Do the base update
 		VYW.SnakePart.prototype.update.call(this);

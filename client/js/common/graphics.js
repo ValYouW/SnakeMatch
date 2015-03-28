@@ -66,6 +66,18 @@ window.VYW = window.VYW || {};
 		this.context.fill();
 	};
 
+	/**
+	 * Draws a rectangle
+	 * @param {Rectangle} rect - The rectangle to fill
+	 * @param {string} [color='#000000'] - The rectangle color
+	 */
+	Graphics.prototype.drawRectangle = function(rect, color) {
+		this.context.beginPath();
+		this.context.rect(rect.x, rect.y, rect.width, rect.height);
+		this.context.strokeStyle = color || '#000000';
+		this.context.stroke();
+	};
+
 	VYW.Graphics = Graphics;
 	VYW.Rectangle = Rectangle;
 

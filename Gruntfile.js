@@ -11,7 +11,7 @@ module.exports = function(grunt) {
 					'client/js/game-objects/pellet.js',
 					'client/js/game-objects/snake-part.js',
 					'client/js/game-objects/snake-head.js',
-					'client/js/game-objects/snake-body.js',
+					'client/js/game-objects/snake.js',
 					'client/js/*.js'
 				],
 				dest: 'public/all.js'
