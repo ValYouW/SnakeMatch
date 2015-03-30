@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server/server.js"
   },
   "repository": {
     "type": "git",
@@ -18,9 +18,9 @@
   },
   "homepage": "https://github.com/ValYouW/SnakeMatch",
   "dependencies": {
+    "node-uuid": "^1.4.3",
     "restify": "^2.8.4",
-    "ws": "^0.7.0",
-    "idgen": "^2.0.2"
+    "ws": "^0.7.0"
   },
   "devDependencies": {
     "grunt": "^0.4.5",

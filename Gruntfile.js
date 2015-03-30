@@ -4,7 +4,7 @@ module.exports = function(grunt) {
 			options: {
 				separator: ';'
 			},
-			dist: {
+			scripts: {
 				src: [
 					'client/js/common/*.js',
 					'client/js/game-objects/board.js',
@@ -15,6 +15,12 @@ module.exports = function(grunt) {
 					'client/js/*.js'
 				],
 				dest: 'public/all.js'
+			},
+			index: {
+				src: [
+					'client/index.html'
+				],
+				dest: 'public/index.html'
 			}
 		}
 	});

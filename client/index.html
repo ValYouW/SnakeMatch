@@ -1,59 +1,64 @@
 <!DOCTYPE html>
 <html>
 <head lang="en">
-    <meta charset="UTF-8">
-    <title>S N A K E - M A T C H ! ! !</title>
+	<meta charset="UTF-8">
+	<title>S N A K E - M A T C H ! ! !</title>
 
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.2/themes/black-tie/jquery-ui.css">
-    <link rel="stylesheet" href="http://bgrins.github.com/spectrum/spectrum.css">
-    <link rel="stylesheet" href="https://cdn.rawgit.com/ValYouW/jqPropertyGrid/9218bbd5df05bf7efe58591f434ea27ece11a045/jqPropertyGrid.css">
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.11.2/themes/black-tie/jquery-ui.css">
+	<link rel="stylesheet" href="http://bgrins.github.com/spectrum/spectrum.css">
+	<link rel="stylesheet" href="https://cdn.rawgit.com/ValYouW/jqPropertyGrid/9218bbd5df05bf7efe58591f434ea27ece11a045/jqPropertyGrid.css">
 
-    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
-    <script src="http://bgrins.github.com/spectrum/spectrum.js"></script>
-    <script src="https://cdn.rawgit.com/ValYouW/jqPropertyGrid/9218bbd5df05bf7efe58591f434ea27ece11a045/jqPropertyGrid.js"></script>
-    <script src="../public/all.js"></script>
+	<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
+	<script src="http://bgrins.github.com/spectrum/spectrum.js"></script>
+	<script src="https://cdn.rawgit.com/ValYouW/jqPropertyGrid/9218bbd5df05bf7efe58591f434ea27ece11a045/jqPropertyGrid.js"></script>
+	<script src="/public/all.js"></script>
 
-    <script type="text/javascript">
-        $(function() {
-            var settings = {
-                boardColor: '#ffffff',
-                snakeColor: '#000000',
-                pelletColor: '#00ff00',
-                maxPellets: 3,
-                pelletsProbability: 0.05,
-                initialSnakeSize: 6
-            };
+	<script type="text/javascript">
+		$(function() {
+			var settings = {
+				boardColor: '#ffffff',
+				homeSnakeColor: '#00D45C',
+				awaySnakeColor: '#E00040',
+				pelletColor: '#FF6A00'
+			};
 
-            var settingMeta = {
-                boardColor: {group: 'Colors', name: 'Board Color', type:'color'},
-                snakeColor: {group: 'Colors', name: 'Snake Color', type:'color'},
-                pelletColor: {group: 'Colors', name: 'Pellet Color', type:'color'},
-                maxPellets: {group: 'Behavior', name: 'Max Pellets', options: {min:1, max: 10, step: 1}},
-                pelletsProbability: {group: 'Behavior', name: 'Pellets Probability', options: {min: 0.01, max: 1, step: 0.01}},
-                initialSnakeSize: {group: 'Behavior', name: 'Initial Snake Size', options: {min: 1, max: 10, step: 1}}
-            };
+			var settingMeta = {
+				boardColor: {group: 'Colors', name: 'Board', type:'color'},
+				homeSnakeColor: {group: 'Colors', name: 'Home Snake', type:'color'},
+				awaySnakeColor: {group: 'Colors', name: 'Away Snake', type:'color'},
+				pelletColor: {group: 'Colors', name: 'Pellet', type:'color'}
+			};
 
-            $('#settingsGrid').jqPropertyGrid(settings, settingMeta);
+			$('#settingsGrid').jqPropertyGrid(settings, settingMeta);
 
-            var game = new VYW.SnakeEngine(document.getElementById('boardPane'));
-            $('#btnPlay').click(function() {
-                game.start($('#settingsGrid').jqPropertyGrid('get'));
-                // Remove the focus from the button so when hitting "sapcebar" to pause it won't get clicked
-                this.blur();
-            });
-        });
+			$('#btnConnect').click(function() {
+				// For simplicity just check if WebSocket is a function
+				if (typeof WebSocket !== 'function') {
+					alert('No WebSocket support in this browser :(');
+					return;
+				}
 
-    </script>
+				var canvas = document.getElementById('boardPane');
+				var settings = $('#settingsGrid').jqPropertyGrid('get');
+
+				var connector = new VYW.Connector(location.host);
+				var game = new VYW.SnakeEngine(canvas, connector, settings);
+
+				this.blur();
+			});
+		});
+
+	</script>
 
 </head>
 <body>
-    <div style="float: left">
-        <canvas id="boardPane" width="500px" height="500px"></canvas>
-    </div>
-    <div style="display: inline-block; margin-left: 10px">
-        <div id="settingsGrid"></div>
-        <input type="button" id="btnPlay" value="Play">
-    </div>
+<div style="float: left">
+	<canvas id="boardPane" width="500px" height="500px"></canvas>
+</div>
+<div style="display: inline-block; margin-left: 10px">
+	<div id="settingsGrid"></div>
+	<input type="button" id="btnConnect" value="Connect" />
+</div>
 </body>
 </html>

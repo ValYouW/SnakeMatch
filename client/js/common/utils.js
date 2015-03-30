@@ -43,12 +43,9 @@ window.VYW = window.VYW || {};
 		settings = typeof settings === 'object' && settings !== null ? settings : {};
 
 		this.boardColor = settings.boardColor || '#ffffff';
-		this.snakeColor = settings.snakeColor || '#000000';
-		this.pelletColor = settings.pelletColor || '#ff3300';
-		this.boxSize = settings.boxSize || 10;
-		this.maxPellets = settings.maxPellets || 3;
-		this.pelletsProbability = settings.pelletsProbability || 0.1;
-		this.initialSnakeSize = settings.initialSnakeSize || 6;
+		this.homeSnakeColor = settings.homeSnakeColor || '#00D45C';
+		this.awaySnakeColor = settings.awaySnakeColor || '#E00040';
+		this.pelletColor = settings.pelletColor || '#FF6A00';
 	};
 
 	/**
