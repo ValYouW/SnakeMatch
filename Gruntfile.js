@@ -22,10 +22,20 @@ module.exports = function(grunt) {
 				],
 				dest: 'public/index.html'
 			}
+		},
+		watch: {
+			scripts: {
+				files: ['client/**/*.*'],
+				tasks: ['client'],
+				options: {
+					debounceDelay: 5000
+				}
+			}
 		}
 	});
 
 	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.registerTask('default', ['concat']);
 	grunt.registerTask('client', ['concat']);
 };

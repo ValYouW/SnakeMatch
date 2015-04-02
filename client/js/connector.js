@@ -3,11 +3,12 @@ window.VYW = window.VYW || {};
 	var PROTOCOL = {
 		DATA_SEP: '#',
 		OBJ_SEP: ',',
-		READY: '1',
-		STEADY: '2',
-		GO: '3',
-		UPDATE: '4',
-		PEER_DISCONNECT: '5'
+		PENDING: '1',
+		READY: '2',
+		STEADY: '3',
+		GO: '4',
+		UPDATE: '5',
+		PEER_DISCONNECT: '6'
 	};
 
 	function Connector(host) {
@@ -15,22 +16,23 @@ window.VYW = window.VYW || {};
 			throw new Error('host is mandatory');
 		}
 
+		var self = this;
 		this.socket = new win.WebSocket('ws://' + host);
 		this.socket.onopen = function() {
 			// "raise" the pending match event
-			this.onPendingMatch();
+			self.onPendingMatch();
 		};
 
 		this.socket.onclose = function() {
-			this.disconnect(Connector.GameOverReason.SocketDisconnect);
+			self.disconnect(Connector.GameOverReason.SocketDisconnect);
 		};
 
 		this.socket.onerror = function() {
-			this.disconnect(Connector.GameOverReason.SocketError);
+			self.disconnect(Connector.GameOverReason.SocketError);
 		};
 
 		this.socket.onmessage = function(msg) {
-			this.handleMessage(msg);
+			self.handleMessage(msg.data);
 		};
 	}
 
