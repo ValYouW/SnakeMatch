@@ -10,6 +10,12 @@ server.listen(3000, function () {
 });
 
 // Set the route for the static files
+server.get('/favicon.ico', function(req, res, next) {
+	res.writeHead(204);
+	res.end();
+	return next();
+});
+
 server.get(/\/?.*/, restify.serveStatic({
 	directory: path.resolve(__dirname, '../client/deploy'),
 	default: 'index.html'
