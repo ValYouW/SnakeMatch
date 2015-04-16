@@ -4,11 +4,10 @@
 * Pending: 1
 * Ready: 2#playerIndex#boardWidth#boardHeight#cellSize
 * Steady: 3#timeToStart
-* Go: 4
-* Update: 5#player1Direction#player2Direction#pellets#score
+* Update: 4#player1Direction#player2Direction#pellets#score
 *     pellets - cellIndex,cellIndex,cellIndex...
 *     score - player1Score,player2Score
-* PeerDisconnect: 6
+* PeerDisconnect: 5
 */
 
 // This file is shared between the client and the server, in case "window" is defined we assume it is the client,
@@ -35,9 +34,8 @@ if (typeof window !== 'undefined') {
 		Pending: '1',
 		Ready: '2',
 		Steady: '3',
-		Go: '4',
-		Update: '5',
-		PeerDisconnect: '6'
+		Update: '4',
+		PeerDisconnect: '5'
 	};
 
 	// Some Model classes
@@ -92,9 +90,6 @@ if (typeof window !== 'undefined') {
 				return Protocol.parseGetReadyMessage(parts);
 			case Protocol.Messages.Steady:
 				return Protocol.parseSteadyMessage(parts);
-			case Protocol.Messages.Go:
-				// No specific data for this message type
-				return new Message(code);
 			case Protocol.Messages.Update:
 				return Protocol.parseUpdateMessage(parts);
 			case Protocol.Messages.PeerDisconnect:
