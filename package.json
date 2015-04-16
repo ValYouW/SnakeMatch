@@ -19,7 +19,6 @@
   "homepage": "https://github.com/ValYouW/SnakeMatch",
   "dependencies": {
     "node-uuid": "^1.4.3",
-    "restify": "^2.8.4",
     "ws": "^0.7.0"
   },
   "devDependencies": {
