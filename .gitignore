@@ -1,4 +1,4 @@
 .idea/
-public/
+client/deploy
 node_modules/
 npm-debug.log
