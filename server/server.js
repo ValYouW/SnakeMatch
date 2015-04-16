@@ -10,8 +10,8 @@ server.listen(3000, function () {
 });
 
 // Set the route for the static files
-server.get(/\/public\/?.*/, restify.serveStatic({
-	directory: path.resolve(__dirname, '../'),
+server.get(/\/?.*/, restify.serveStatic({
+	directory: path.resolve(__dirname, '../client/deploy'),
 	default: 'index.html'
 }));
 
