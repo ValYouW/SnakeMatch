@@ -1,5 +1,6 @@
 var Emitter = require('events').EventEmitter,
 	Player = require('./player.js'),
+	SnakeEngine = require('./snake-engine.js'),
 	protocol = require('./../../common/protocol.js'),
 	util = require('util'),
 	uuid = require('node-uuid');
@@ -21,6 +22,8 @@ function Match(player1, player2) {
 
 	this.player1.on(Player.Events.Disconnect, this.onPlayerDisconnect.bind(this));
 	this.player2.on(Player.Events.Disconnect, this.onPlayerDisconnect.bind(this));
+
+	this.snakeEngine = new SnakeEngine(BOARD.WIDTH, BOARD.HEIGHT, BOARD.CELL);
 }
 util.inherits(Match, Emitter);
 

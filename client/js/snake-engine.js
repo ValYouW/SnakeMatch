@@ -12,7 +12,7 @@
 		this.graphics = new VYW.Graphics(canvas);
 		this.settings = new VYW.GameSettings(settings);
 
-		this.board = new VYW.Board(this.canvas.width, this.canvas.height, this.settings.boardColor);
+		this.board = null;
 		this.homeSnake = null;
 		this.awaySnake = null;
 		this.pellets = [];
