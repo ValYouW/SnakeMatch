@@ -1,5 +1,5 @@
-window.VYW = window.VYW || {};
-(function(VYW) {
+// This file is shared between the client and the server, in case "window" is defined we assume it is the client
+(function(parent, Rectangle) {
 
 	/**
 	 * This is a common snake part
@@ -11,13 +11,13 @@ window.VYW = window.VYW || {};
 	 */
 	function SnakePart(x, y, size, color, following) {
 		following = following || null;
-		this.location = new VYW.Rectangle(x, y, size, size);
+		this.location = new Rectangle(x, y, size, size);
 		this.size = size;
 		this.color = color;
 		this.prevLocation = null;
 
 		this.following = following;
-		if (this.following && !(this.following instanceof VYW.SnakePart)) {
+		if (this.following && !(this.following instanceof SnakePart)) {
 			throw new Error('SnakeBody must be following someone...');
 		}
 	}
@@ -43,6 +43,8 @@ window.VYW = window.VYW || {};
 		}
 	};
 
-	VYW.SnakePart = SnakePart;
+	parent.SnakePart = SnakePart;
 
-}(window.VYW));
+// Pass in the correct object (server vs client)
+}(typeof window === 'undefined' ? module.exports : window.VYW,
+  typeof window === 'undefined' ? require('../rectangle.js').Rectangle : window.VYW.Rectangle));

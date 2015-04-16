@@ -1,4 +1,3 @@
-window.VYW = window.VYW || {};
 (function(VYW, win) {
 	/**
 	 * Creates a new snake game

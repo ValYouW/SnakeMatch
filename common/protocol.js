@@ -10,9 +10,7 @@
 * PeerDisconnect: 5
 */
 
-// This file is shared between the client and the server, in case "window" is defined we assume it is the client,
-// otherwise we assume it's the serer.
-// If this is the client we put the Protocol object on our VYW namespace
+// This file is shared between the client and the server, in case "window" is defined we assume it is the client
 if (typeof window !== 'undefined') {
 	window.VYW = window.VYW || {};
 	window.VYW.Protocol = {};
@@ -22,11 +20,14 @@ if (typeof window !== 'undefined') {
 	// Hold some data characters (delimiters etc)
 	var DATA = {
 		DATA_SEP: '#',
-		OBJ_SEP: ',',
-		UP: '8',
-		RIGHT: '6',
-		DOWN: '2',
-		LEFT: '4'
+		OBJ_SEP: ','
+	};
+
+	Protocol.Direction = {
+		Up: '8',
+		Right: '6',
+		Down: '2',
+		Left: '4'
 	};
 
 	// Expose the messages enum
@@ -143,5 +144,5 @@ if (typeof window !== 'undefined') {
 		return null;
 	};
 
-// Pass in the correct Protocol object (server vs client)
+// Pass in the correct object (server vs client)
 }(typeof window === 'undefined' ? module.exports : window.VYW.Protocol));

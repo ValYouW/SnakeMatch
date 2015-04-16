@@ -1,6 +1,6 @@
 var Emitter = require('events').EventEmitter,
 	Player = require('./player.js'),
-	protocol = require('./protocol.js'),
+	protocol = require('./../../common/protocol.js'),
 	util = require('util'),
 	uuid = require('node-uuid');
 

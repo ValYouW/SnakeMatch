@@ -1,5 +1,5 @@
-window.VYW = window.VYW || {};
-(function(VYW) {
+// This file is shared between the client and the server, in case "window" is defined we assume it is the client
+(function(parent, Rectangle) {
 
 	/**
 	 * Creates a new Pellet instance
@@ -10,7 +10,7 @@ window.VYW = window.VYW || {};
 	 * @constructor
 	 */
 	function Pellet(x, y, size, color) {
-		this.location = new VYW.Rectangle(x, y, size, size);
+		this.location = new Rectangle(x, y, size, size);
 		this.size = size;
 		this.color = color;
 	}
@@ -30,6 +30,9 @@ window.VYW = window.VYW || {};
 		graphics.fillRectangle(this.location,  this.color);
 	};
 
-	VYW.Pellet = Pellet;
+	parent.Pellet = Pellet;
 
-}(window.VYW));
+// Pass in the correct object (server vs client)
+}(typeof window === 'undefined' ? module.exports : window.VYW,
+  typeof window === 'undefined' ? require('../rectangle.js').Rectangle : window.VYW.Rectangle));
+

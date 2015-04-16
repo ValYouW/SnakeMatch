@@ -1,5 +1,5 @@
-window.VYW = window.VYW || {};
-(function(VYW) {
+// This file is shared between the client and the server, in case "window" is defined we assume it is the client
+(function(parent, Rectangle) {
 
 	/**
 	 * Creates a new game board instance
@@ -10,7 +10,7 @@ window.VYW = window.VYW || {};
 	 * @constructor
 	 */
 	function Board(w, h, color, borderColor) {
-		this.rectangle = new VYW.Rectangle(0, 0, w, h);
+		this.rectangle = new Rectangle(0, 0, w, h);
 		this.color = color;
 		this.borderColor = borderColor || '#000000';
 	}
@@ -25,6 +25,8 @@ window.VYW = window.VYW || {};
 		graphics.drawRectangle(this.rectangle, this.borderColor);
 	};
 
-	VYW.Board = Board;
+	parent.Board = Board;
 
-}(window.VYW));
+// Pass in the correct object (server vs client)
+}(typeof window === 'undefined' ? module.exports : window.VYW,
+  typeof window === 'undefined' ? require('../rectangle.js').Rectangle : window.VYW.Rectangle));

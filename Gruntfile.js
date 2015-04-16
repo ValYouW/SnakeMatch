@@ -6,13 +6,14 @@ module.exports = function(grunt) {
 			},
 			scripts: {
 				src: [
+					'client/js/index.js',
+					'common/*.js',
 					'client/js/lib/*.js',
-					'server/game/protocol.js',
-					'client/js/game-objects/board.js',
-					'client/js/game-objects/pellet.js',
-					'client/js/game-objects/snake-part.js',
-					'client/js/game-objects/snake-head.js',
-					'client/js/game-objects/snake.js',
+					'common/game-objects/board.js',
+					'common/game-objects/pellet.js',
+					'common/game-objects/snake-part.js',
+					'common/game-objects/snake-head.js',
+					'common/game-objects/snake.js',
 					'client/js/*.js'
 				],
 				dest: 'client/deploy/all.js'
@@ -26,17 +27,29 @@ module.exports = function(grunt) {
 		},
 		watch: {
 			scripts: {
-				files: ['client/**/*.*', '!client/deploy/**/*.*', 'server/game/protocol.js'],
+				files: ['client/**/*.*', '!client/deploy/**/*.*', 'common/*.js'],
 				tasks: ['client'],
 				options: {
 					debounceDelay: 5000
 				}
 			}
+		},
+		jshint: {
+			options: {
+				jshintrc: true,
+				ignores: [
+					'node_modules/**',
+					'client/deploy/**/*.*',
+					'**/*.min.js'
+				]
+			},
+			files: ['**/*.js']
 		}
 	});
 
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-watch');
-	grunt.registerTask('default', ['concat']);
+	grunt.loadNpmTasks('grunt-contrib-jshint');
+	grunt.registerTask('default', ['jshint', 'concat']);
 	grunt.registerTask('client', ['concat']);
 };
