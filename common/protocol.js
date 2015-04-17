@@ -5,9 +5,13 @@
 * Ready: 2#playerIndex#boardWidth#boardHeight#cellSize
 * Steady: 3#timeToStart
 * Update: 4#player1Direction#player2Direction#pellets#score
-*     pellets - cellIndex,cellIndex,cellIndex...
-*     score - player1Score,player2Score
-* PeerDisconnect: 5
+*   pellets - cellIndex,cellIndex,cellIndex...
+*   score - player1Score,player2Score
+* Go: 5
+* GameOver: 6#Reason#ExtraData...
+*   PeerDisconnect - No extra data
+*   Collision - winningPlayerIndex
+*   End - player1Score#player2Score
 */
 
 // This file is shared between the client and the server, in case "window" is defined we assume it is the client
@@ -30,13 +34,20 @@ if (typeof window !== 'undefined') {
 		Left: '4'
 	};
 
+	Protocol.GameOverReason = {
+		PeerDisconnect: '1',
+		Collision: '2',
+		End: '3'
+	};
+
 	// Expose the messages enum
 	Protocol.Messages = {
 		Pending: '1',
 		Ready: '2',
 		Steady: '3',
-		Update: '4',
-		PeerDisconnect: '5'
+		Go: '4',
+		Update: '5',
+		GameOver: '6'
 	};
 
 	// Some Model classes
@@ -57,6 +68,12 @@ if (typeof window !== 'undefined') {
 		this.timeToStart = 0;
 	}
 
+	function GameOverMessage(reason) {
+		Message.call(this, Protocol.Messages.GameOver);
+		this.reason = reason;
+		this.winningPlayer = 0;
+	}
+
 	// Encode functions
 
 	Protocol.buildPending = function() {
@@ -71,8 +88,27 @@ if (typeof window !== 'undefined') {
 		return [Protocol.Messages.Steady, tts].join(DATA.DATA_SEP);
 	};
 
-	Protocol.buildPeerDisconnect = function() {
-		return Protocol.Messages.PeerDisconnect;
+	Protocol.buildGo = function() {
+		return Protocol.Messages.Go;
+	};
+
+	Protocol.buildGameOver = function(reason, winningPlayerIndex, player1Score, player2Score) {
+		var msg;
+		switch (reason) {
+			case Protocol.GameOverReason.PeerDisconnect:
+				msg = [Protocol.Messages.GameOver, reason].join(DATA.DATA_SEP);
+				break;
+			case Protocol.GameOverReason.Collision:
+				msg = [Protocol.Messages.GameOver, reason, winningPlayerIndex].join(DATA.DATA_SEP);
+				break;
+			case Protocol.GameOverReason.End:
+				msg = [Protocol.Messages.GameOver, reason, player1Score, player2Score].join(DATA.DATA_SEP);
+				break;
+			default:
+				msg = null;
+		}
+
+		return msg;
 	};
 
 	// Decode functions
@@ -91,11 +127,14 @@ if (typeof window !== 'undefined') {
 				return Protocol.parseGetReadyMessage(parts);
 			case Protocol.Messages.Steady:
 				return Protocol.parseSteadyMessage(parts);
-			case Protocol.Messages.Update:
-				return Protocol.parseUpdateMessage(parts);
-			case Protocol.Messages.PeerDisconnect:
+			case Protocol.Messages.Go:
 				// No specific data for this message type
 				return new Message(code);
+			case Protocol.Messages.Update:
+				return Protocol.parseUpdateMessage(parts);
+			case Protocol.Messages.GameOver:
+				// No specific data for this message type
+				return Protocol.parseGameOverMessage(parts);
 			default:
 				return null;
 		}
@@ -137,6 +176,48 @@ if (typeof window !== 'undefined') {
 			return null;
 		} else {
 			return res;
+		}
+	};
+
+	Protocol.parseGameOverMessage = function(data) {
+		// GameOver message contains Reason#Extradata
+		if (data.length < 1) {
+			return null;
+		}
+
+		var reason = data[0];
+		var res = new GameOverMessage(reason);
+		switch (reason) {
+			case Protocol.GameOverReason.PeerDisconnect:
+				return res;
+			case Protocol.GameOverReason.Collision:
+				// In case of collision we expect another cell with the winning player index
+				if (data.length < 2) {
+					return null;
+				}
+				res.winningPlayer = parseInt(data[1]);
+				if (!res.winningPlayer || res.winningPlayer < 1 || res.winningPlayer > 2) {
+					return null;
+				}
+				return res;
+			case Protocol.GameOverReason.End:
+				// In case of game end we expect 2 more cells with the scores
+				if (data.length < 3) {
+					return null;
+				}
+
+				var player1Score = parseInt(data[1]);
+				var player2Score = parseInt(data[2]);
+				// The reason we check isNaN instead of (!player1Score) is that 0 is a valid value for this field
+				if (isNaN(player1Score) || isNaN(player2Score)) {
+					return null;
+				}
+
+				// For simplicity tie is not an option
+				res.winningPlayer = player1Score > player2Score ? 1 : 2;
+				return res;
+			default:
+				return null;
 		}
 	};
 
