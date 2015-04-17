@@ -24,11 +24,22 @@
 	/**
 	 * Convert a box index to screen location
 	 * @param {number} boxIndex - A box index
-	 * @returns {number} The screen location on the box
+	 * @returns {Rectangle} The screen location on the box
 	 */
 	Board.prototype.toScreen = function(boxIndex) {
-		// Make sure that boxIndex is integer
-		return Math.floor(boxIndex) * this.boxSize;
+		var y = Math.floor(boxIndex / this.horizontalBoxes) * this.boxSize;
+		var x = (boxIndex % this.horizontalBoxes) * this.boxSize;
+		return new Rectangle(x, y, this.boxSize, this.boxSize);
+	};
+
+	/**
+	 * Gets the box index of an x/y location
+	 * @param {number} x - The box x
+	 * @param {number} y - The box y
+	 * @returns {number} The box index on the board (box index run from 0 to the TotalNumberOfBoxes-1)
+	 */
+	Board.prototype.toBoxIndex = function(x, y) {
+		return Math.floor(y / this.boxSize) * this.horizontalBoxes + Math.floor(x / this.boxSize);
 	};
 
 	/**

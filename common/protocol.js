@@ -1,19 +1,3 @@
-/*
-* Messages
-* --------
-* Pending: 1
-* Ready: 2#playerIndex#boardWidth#boardHeight#cellSize
-* Steady: 3#timeToStart
-* Update: 4#player1Direction#player2Direction#pellets#score
-*   pellets - cellIndex,cellIndex,cellIndex...
-*   score - player1Score,player2Score
-* Go: 5
-* GameOver: 6#Reason#ExtraData...
-*   PeerDisconnect - No extra data
-*   Collision - winningPlayerIndex
-*   End - player1Score#player2Score
-*/
-
 // This file is shared between the client and the server, in case "window" is defined we assume it is the client
 if (typeof window !== 'undefined') {
 	window.VYW = window.VYW || {};
@@ -22,10 +6,8 @@ if (typeof window !== 'undefined') {
 
 (function(Protocol) {
 	// Hold some data characters (delimiters etc)
-	var DATA = {
-		DATA_SEP: '#',
-		OBJ_SEP: ','
-	};
+	var DATA_SEP = '#',
+		OBJ_SEP = ',';
 
 	Protocol.Direction = {
 		Up: '8',
@@ -50,7 +32,8 @@ if (typeof window !== 'undefined') {
 		GameOver: '6'
 	};
 
-	// Some Model classes
+	// ------------- Model Classes -------------
+
 	function Message(type) {
 		this.type = type;
 	}
@@ -74,35 +57,77 @@ if (typeof window !== 'undefined') {
 		this.winningPlayer = 0;
 	}
 
-	// Encode functions
+	function UpdateMessage() {
+		this.timeToEnd = -1;
+		this.player1Direction = '';
+		this.player2Direction = '';
+		this.pellets = [];
+		this.player1Score = 0;
+		this.player2Score = 0;
+	}
+
+	// ------------- End Model Classes -------------
+
+	// ------------- Encode Functions -------------
 
 	Protocol.buildPending = function() {
+		// Pending: 1
 		return Protocol.Messages.Pending;
 	};
 
-	Protocol.buildReady = function(playerIndex, boardWidth, boardHeight, cellSize) {
-		return [Protocol.Messages.Ready, playerIndex, boardWidth, boardHeight, cellSize].join(DATA.DATA_SEP);
+	Protocol.buildReady = function(playerIndex, board) {
+		// Ready: 2#playerIndex#boardWidth#boardHeight#cellSize
+		return Protocol.Messages.Ready + DATA_SEP + playerIndex + DATA_SEP + board.rectangle.width + DATA_SEP + board.rectangle.height + DATA_SEP + board.boxSize;
 	};
 
 	Protocol.buildSteady = function(tts) {
-		return [Protocol.Messages.Steady, tts].join(DATA.DATA_SEP);
+		// Steady: 3#timeToStart
+		return Protocol.Messages.Steady + DATA_SEP + tts;
 	};
 
 	Protocol.buildGo = function() {
+		// Go: 4
 		return Protocol.Messages.Go;
 	};
 
-	Protocol.buildGameOver = function(reason, winningPlayerIndex, player1Score, player2Score) {
+	Protocol.buildUpdate = function(tte, snake1, snake2, pellets, board) {
+		// Update: 5#timeToEnd#playersDirection#pellets#score
+		// playersDirection - player1Direction,player2Direction
+		// pellets - cellIndex,cellIndex,cellIndex...
+		// score - player1Score,player2Score
+
+		var msg = Protocol.Messages.Update + DATA_SEP + tte + DATA_SEP + snake1.direction + OBJ_SEP + snake2.direction + DATA_SEP;
+
+		// Now add the pellets
+		var currPellet;
+		var delim;
+		for (var i = 0; i < pellets.length; ++i) {
+			currPellet = pellets[i];
+			delim = (i === pellets.length - 1) ? '' : OBJ_SEP; // Don't add separator for the last element
+			msg += board.toBoxIndex(currPellet.location.x, currPellet.location.y) + delim;
+		}
+
+		// Finally add the score
+		msg += DATA_SEP + snake1.parts.length + OBJ_SEP + snake2.parts.length;
+
+		return msg;
+	};
+
+	Protocol.buildGameOver = function(reason, winningPlayerIndex, snake1, snake2) {
+		// GameOver: 6#Reason#ExtraData...
+		//   PeerDisconnect - No extra data
+		//   Collision - winningPlayerIndex
+		//   End - player1Score#player2Score
 		var msg;
 		switch (reason) {
 			case Protocol.GameOverReason.PeerDisconnect:
-				msg = [Protocol.Messages.GameOver, reason].join(DATA.DATA_SEP);
+				msg = Protocol.Messages.GameOver + DATA_SEP + reason;
 				break;
 			case Protocol.GameOverReason.Collision:
-				msg = [Protocol.Messages.GameOver, reason, winningPlayerIndex].join(DATA.DATA_SEP);
+				msg = Protocol.Messages.GameOver + DATA_SEP + reason + DATA_SEP + winningPlayerIndex;
 				break;
 			case Protocol.GameOverReason.End:
-				msg = [Protocol.Messages.GameOver, reason, player1Score, player2Score].join(DATA.DATA_SEP);
+				msg = Protocol.Messages.GameOver + DATA_SEP + reason + DATA_SEP + snake1.parts.length + DATA_SEP + snake2.parts.length;
 				break;
 			default:
 				msg = null;
@@ -111,13 +136,15 @@ if (typeof window !== 'undefined') {
 		return msg;
 	};
 
-	// Decode functions
+	// ------------- End Encode Functions -------------
+
+	// ------------- Decode Functions -------------
 
 	Protocol.parseMessage = function(msg) {
 		// Message: "CODE#DATA"
 		if (!msg) {return null;}
 
-		var parts = msg.split(DATA.DATA_SEP);
+		var parts = msg.split(DATA_SEP);
 		var code = parts.shift(); // This also removes the code from the parts array
 		switch (code) {
 			case Protocol.Messages.Pending:
@@ -222,8 +249,47 @@ if (typeof window !== 'undefined') {
 	};
 
 	Protocol.parseUpdateMessage = function(data) {
+		// Update: [timeToEnd, playersDirection, pellets, score]
+		// playersDirection - player1Direction,player2Direction
+		// pellets - cellIndex,cellIndex,cellIndex...
+		// score - player1Score,player2Score
+
+		if (data.length < 4) {
+			return null;
+		}
+
+		var res = new UpdateMessage();
+
+		// Parse tte
+		res.timeToEnd = parseInt(data[0]);
+		if (isNaN(res.timeToEnd)) {
+			return null;
+		}
+
+		// Parse players directions
+		var dirs = data[1].split(OBJ_SEP);
+		if (dirs.length < 2) {
+			return null;
+		}
+
+		res.player1Direction = dirs[0];
+		res.player2Direction = dirs[1];
+
+		// Parse players scores
+		var scores = data[3].split(OBJ_SEP);
+		if (scores.length < 2) {
+			return null;
+		}
+
+		res.player1Score = scores[0];
+		res.player2Score = scores[1];
+
+		// Parse pellets
+
 		return null;
 	};
+
+	// ------------- End Decode Functions -------------
 
 // Pass in the correct object (server vs client)
 }(typeof window === 'undefined' ? module.exports : window.VYW.Protocol));

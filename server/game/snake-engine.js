@@ -9,14 +9,13 @@ var MAX_PELLETS = 6;
 function SnakeEngine(width, height, cellSize) {
 	this.board = new Board(width, height, cellSize);
 
-	// The first snake is created on the left side and is heading right
-	var startX = cellSize * INITIAL_SNAKE_SIZE;
-	var startY = this.board.toScreen(this.board.verticalBoxes / 2);
-	this.snake1 = new Snake(startX, startY, cellSize, INITIAL_SNAKE_SIZE, protocol.Direction.Right);
+	// The first snake is created on the left side and is heading right (very top row, y index = 0)
+	var snakeLoc = this.board.toScreen(INITIAL_SNAKE_SIZE - 1);
+	this.snake1 = new Snake(snakeLoc.x, snakeLoc.y, cellSize, INITIAL_SNAKE_SIZE, protocol.Direction.Right);
 
-	// The second snake is created on the right side and is heading left
-	startX = width - cellSize * INITIAL_SNAKE_SIZE;
-	this.snake2 = new Snake(startX, startY, cellSize, INITIAL_SNAKE_SIZE, protocol.Direction.Left);
+	// The second snake is created on the right side and is heading left (very top row, y index = 0)
+	snakeLoc = this.board.toScreen(width/cellSize - INITIAL_SNAKE_SIZE);
+	this.snake2 = new Snake(snakeLoc.x, snakeLoc.y, cellSize, INITIAL_SNAKE_SIZE, protocol.Direction.Left);
 
 	this.pellets = [];
 }
@@ -118,15 +117,12 @@ SnakeEngine.prototype.addPellet = function() {
 		keepSearch = false;
 
 		// Take a random spot on the board
-		var x = Math.random() * this.board.horizontalBoxes;
-		var y = Math.random() * this.board.verticalBoxes;
-		x = this.board.toScreen(x);
-		y = this.board.toScreen(y);
-		var pellet = new Pellet(x, y, this.board.boxSize);
+		var boxIndex = Math.floor(Math.random() * this.board.horizontalBoxes * this.board.horizontalBoxes);
+		var loc = this.board.toScreen(boxIndex);
 
 		// check that this spot is not on snake1
 		for (var i = 0; i < this.snake1.parts.length; ++i) {
-			if (this.snake1.parts[i].location.equals(pellet.location)) {
+			if (this.snake1.parts[i].location.equals(loc)) {
 				keepSearch = true;
 				break;
 			}
@@ -135,7 +131,7 @@ SnakeEngine.prototype.addPellet = function() {
 		if (!keepSearch) {
 			// check that this spot is not on snake2
 			for (i = 0; i < this.snake2.parts.length; ++i) {
-				if (this.snake2.parts[i].location.equals(pellet.location)) {
+				if (this.snake2.parts[i].location.equals(loc)) {
 					keepSearch = true;
 					break;
 				}
@@ -144,7 +140,7 @@ SnakeEngine.prototype.addPellet = function() {
 
 		if (!keepSearch) {
 			// Hooray we can add the pellet
-			this.pellets.push(pellet);
+			this.pellets.push(new Pellet(loc.x, loc.y, loc.width));
 		}
 	}
 };

@@ -47,7 +47,7 @@
 
 		var message = VYW.Protocol.parseMessage(data);
 		if (message === null) {
-			this.disconnect(Connector.DisconnectReason.InvalidMessage);
+			////this.disconnect(Connector.DisconnectReason.InvalidMessage);
 			return;
 		}
 

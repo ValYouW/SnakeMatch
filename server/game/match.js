@@ -36,22 +36,26 @@ Match.Events = {
 
 Match.prototype.start = function() {
 	// Build the ready message for each player
-	var msg = protocol.buildReady(1, BOARD.WIDTH, BOARD.HEIGHT, BOARD.CELL);
+	var msg = protocol.buildReady(1, this.snakeEngine.board);
 	this.player1.send(msg);
 
-	msg = protocol.buildReady(2, BOARD.WIDTH, BOARD.HEIGHT, BOARD.CELL);
+	msg = protocol.buildReady(2, this.snakeEngine.board);
 	this.player2.send(msg);
 
 	this.steady();
 };
 
 Match.prototype.steady = function() {
+	var msg;
 	if (this.steadyLeft === 0) {
-		this.update();
+		msg = protocol.buildGo();
+		this.player1.send(msg);
+		this.player2.send(msg);
+		this.gameTimer = setTimeout(this.update.bind(this), UPD_FREQ);
 		return;
 	}
 
-	var msg = protocol.buildSteady(this.steadyLeft);
+	msg = protocol.buildSteady(this.steadyLeft);
 	this.player1.send(msg);
 	this.player2.send(msg);
 	--this.steadyLeft;
@@ -83,7 +87,7 @@ Match.prototype.update = function() {
 		}
 
 		// Build a GameOver message
-		msg = protocol.buildGameOver(protocol.GameOverReason.End, 0, this.snakeEngine.snake1.parts.length, this.snakeEngine.snake2.parts.length);
+		msg = protocol.buildGameOver(protocol.GameOverReason.End, 0, this.snakeEngine.snake1, this.snakeEngine.snake2);
 	} else {
 		// Ok, some snake had a collision and lost, since we have only 2 players we can send a GameOver message.
 		var winningPlayer = (losingSnake + 2) % 2 + 1;
@@ -97,11 +101,13 @@ Match.prototype.update = function() {
 };
 
 Match.prototype.sendUpdateMessage = function() {
-
+	var msg = protocol.buildUpdate(this.matchTime, this.snakeEngine.snake1, this.snakeEngine.snake2, this.snakeEngine.pellets, this.snakeEngine.board);
+	this.player1.send(msg);
+	this.player2.send(msg);
 };
 
 Match.prototype.onPlayerDisconnect = function(player) {
-	var msg = protocol.buildPeerDisconnect();
+	var msg = protocol.buildGameOver(protocol.GameOverReason.PeerDisconnect);
 	if (this.player1.id === player.id) {
 		this.player2.send(msg);
 	} else {
