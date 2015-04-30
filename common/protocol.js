@@ -9,6 +9,9 @@ if (typeof window !== 'undefined') {
 	var DATA_SEP = '#',
 		OBJ_SEP = ',';
 
+	/**
+	 * Player direction enum
+	 */
 	Protocol.Direction = {
 		Up: '8',
 		Right: '6',
@@ -16,13 +19,18 @@ if (typeof window !== 'undefined') {
 		Left: '4'
 	};
 
+	/**
+	 * Game over reason
+	 */
 	Protocol.GameOverReason = {
 		PeerDisconnect: '1',
 		Collision: '2',
 		End: '3'
 	};
 
-	// Expose the messages enum
+	/**
+	 * Server messages enum
+	 */
 	Protocol.Messages = {
 		Pending: '1',
 		Ready: '2',
@@ -34,10 +42,18 @@ if (typeof window !== 'undefined') {
 
 	// ------------- Model Classes -------------
 
+	/**
+	 * Creates a new message
+	 * @param {string} type - The message type
+	 * @constructor
+	 */
 	function Message(type) {
 		this.type = type;
 	}
 
+	/**
+	 * @constructor
+	 */
 	function GetReadyMessage() {
 		Message.call(this, Protocol.Messages.Ready);
 		this.playerIndex = 0;
@@ -46,18 +62,28 @@ if (typeof window !== 'undefined') {
 		this.boardCellSize = 0;
 	}
 
+	/**
+	 * @constructor
+	 */
 	function SteadyMessage() {
 		Message.call(this, Protocol.Messages.Steady);
 		this.timeToStart = 0;
 	}
 
+	/**
+	 * @constructor
+	 */
 	function GameOverMessage(reason) {
 		Message.call(this, Protocol.Messages.GameOver);
 		this.reason = reason;
 		this.winningPlayer = 0;
 	}
 
+	/**
+	 * @constructor
+	 */
 	function UpdateMessage() {
+		Message.call(this, Protocol.Messages.Update);
 		this.timeToEnd = -1;
 		this.player1Direction = '';
 		this.player2Direction = '';
@@ -167,6 +193,11 @@ if (typeof window !== 'undefined') {
 		}
 	};
 
+	/**
+	 *
+	 * @param {string} data - The encoded message
+	 * @returns {GetReadyMessage}
+	 */
 	Protocol.parseGetReadyMessage = function(data) {
 		// GetReady message: playerIndex#boardWidth#boardHeight#cellSize
 		// Remember that the message already got split, so we have all in the array.
@@ -275,10 +306,12 @@ if (typeof window !== 'undefined') {
 		res.player1Direction = dirs[0];
 		res.player2Direction = dirs[1];
 
-		// Parse pellets
-		var pellets = data[2].split(OBJ_SEP);
-		for (var i = 0; i < pellets.length; ++i) {
-			res.pellets.push(pellets[i]);
+		// Parse pellets (if we have)
+		if (data[2]) {
+			var pellets = data[2].split(OBJ_SEP);
+			for (var i = 0; i < pellets.length; ++i) {
+				res.pellets.push(pellets[i]);
+			}
 		}
 
 		// Parse players scores
@@ -287,8 +320,16 @@ if (typeof window !== 'undefined') {
 			return null;
 		}
 
-		res.player1Score = scores[0];
-		res.player2Score = scores[1];
+		var player1Score = parseInt(scores[0]);
+		var player2Score = parseInt(scores[1]);
+		// The reason we check isNaN instead of (!player1Score) is that 0 is a valid value for this field
+		if (isNaN(player1Score) || isNaN(player2Score)) {
+			return null;
+		}
+
+
+		res.player1Score = player1Score;
+		res.player2Score = player2Score;
 
 		return res;
 	};

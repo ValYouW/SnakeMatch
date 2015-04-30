@@ -29,6 +29,7 @@ window.VYW = window.VYW || {};
 	VYW.GameSettings = function(settings) {
 		settings = typeof settings === 'object' && settings !== null ? settings : {};
 
+		this.textColor = settings.textColor || '#000000';
 		this.boardColor = settings.boardColor || '#ffffff';
 		this.homeSnakeColor = settings.homeSnakeColor || '#00D45C';
 		this.awaySnakeColor = settings.awaySnakeColor || '#E00040';

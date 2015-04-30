@@ -1,5 +1,10 @@
 (function(VYW, win) {
 
+	/**
+	 * Creates a new Connector
+	 * @param {string} host - The server host address
+	 * @constructor
+	 */
 	function Connector(host) {
 		if (typeof host !== 'string' || !host) {
 			throw new Error('host is mandatory');
@@ -25,6 +30,9 @@
 		};
 	}
 
+	/**
+	 * Disconnect reason enum
+	 */
 	Connector.DisconnectReason = {
 		InvalidMessage: 0,
 		SocketDisconnect: 1,
@@ -36,18 +44,22 @@
 	Connector.prototype.onConnected = function() {};
 	Connector.prototype.onDisconnect = function(reason) {};
 	Connector.prototype.onPendingMatch = function() {};
-	Connector.prototype.onGetReady = function(boardData) {};
-	Connector.prototype.onSteady = function(startIn) {};
+	Connector.prototype.onGetReady = function(readyMessage) {};
+	Connector.prototype.onSteady = function(steadyMessage) {};
 	Connector.prototype.onGameStart = function() {};
 	Connector.prototype.onGameUpdate = function(data) {};
 	Connector.prototype.onGameOver = function(reason, winningPlayerIndex) {};
 
+	/**
+	 * Handles a message from the server
+	 * @param {string} data - The message data
+	 */
 	Connector.prototype.handleMessage = function(data) {
 		if (!data) {return;}
 
 		var message = VYW.Protocol.parseMessage(data);
 		if (message === null) {
-			////this.disconnect(Connector.DisconnectReason.InvalidMessage);
+			this.disconnect(Connector.DisconnectReason.InvalidMessage);
 			return;
 		}
 
@@ -75,6 +87,10 @@
 		}
 	};
 
+	/**
+	 * Disconnects from the server
+	 * @param {DisconnectReason} reason - The disconnect reason
+	 */
 	Connector.prototype.disconnect = function(reason) {
 		if (!this.socket) {return;}
 
@@ -90,6 +106,9 @@
 		this.onDisconnect(reason);
 	};
 
+	/**
+	 * @typedef {Connector} VYW.Connector
+	 */
 	VYW.Connector = Connector;
 
 }(window.VYW, window));
