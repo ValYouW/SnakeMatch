@@ -39,6 +39,7 @@
 		}
 	}
 
+	// Property for changing the snake color
 	Object.defineProperty(Snake.prototype, 'color', {
 		set: function(color) {
 			for (var i = 0; i < this.parts.length; ++i) {
@@ -54,6 +55,27 @@
 		var currTail = this.parts[this.parts.length-1];
 		var newSnakeTail = new SnakePart(currTail.prevLocation.x, currTail.prevLocation.y, currTail.size, currTail.color, currTail);
 		this.parts.push(newSnakeTail);
+	};
+
+	/**
+	 * Changes the snake direcion
+	 * @param {Protocol.Direction} newDir
+	 */
+	Snake.prototype.changeDirection = function(newDir) {
+		if (newDir === this.direction) {
+			return;
+		}
+
+		// Make sure we can do the change (can't do 180 degrees turns)
+		if (newDir === protocol.Direction.Right && this.direction !== protocol.Direction.Left) {
+			this.direction = newDir;
+		} else if (newDir === protocol.Direction.Left && this.direction !== protocol.Direction.Right) {
+			this.direction = newDir;
+		} else if (newDir === protocol.Direction.Up && this.direction !== protocol.Direction.Down) {
+			this.direction = newDir;
+		} else if (newDir === protocol.Direction.Down && this.direction !== protocol.Direction.Up) {
+			this.direction = newDir;
+		}
 	};
 
 	/**

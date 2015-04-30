@@ -95,14 +95,23 @@
 	 * @param {UpdateMessage} data
 	 */
 	SnakeEngine.prototype.handleGameUpdateMessage = function(data) {
+		// Update game data
 		this.gameData.player1Score = data.player1Score;
 		this.gameData.player2Score = data.player2Score;
 		this.gameData.timeToEnd = data.timeToEnd;
 
+		// Update players
 		this.snake1.direction = data.player1Direction;
 		this.snake1.update();
 		this.snake2.direction = data.player2Direction;
 		this.snake2.update();
+
+		// Update pellets
+		this.pellets = [];
+		for (var i = 0; i < data.pellets.length; ++i) {
+			var loc = this.board.toScreen(data.pellets[i]);
+			this.pellets.push(new VYW.Pellet(loc, this.settings.pelletColor));
+		}
 	};
 
 	SnakeEngine.prototype.handleGameOverMessage = function(reason, winningPlayerIndex) {
@@ -120,6 +129,10 @@
 		if (this.snake2) { this.snake2.draw(this.graphics); }
 		if (this.gameData) { this.gameData.draw(this.graphics); }
 
+		for (var i = 0; i < this.pellets.length; ++i) {
+			this.pellets[i].draw(this.graphics);
+		}
+
 		// No need to reload the draw timer if we are disconnected or game over.
 		if (this.gameData &&
 			(this.gameData.state === VYW.GameData.GameState.Disconnected || this.gameData.state === VYW.GameData.GameState.GameOver)) {
@@ -127,15 +140,6 @@
 		}
 
 		win.requestAnimationFrame(this.draw.bind(this));
-
-//		this.board.draw(this.graphics);
-//		this.snake1.draw(this.graphics);
-//		this.snake2.draw(this.graphics);
-//
-//		// Draw the pellets
-//		for (var i = 0; i < this.pellets.length; ++i) {
-//			this.pellets[i].draw(this.graphics);
-//		}
 	};
 
 	/**
@@ -144,20 +148,28 @@
 	 * @private
 	 */
 	SnakeEngine.prototype.handleKeyDown = function(e) {
+		var newDir = '';
 		switch (e.keyCode) {
 			case VYW.KeyCodes.Left:
-				this.direction = VYW.Direction.Left;
+				newDir = VYW.Protocol.Direction.Left;
 				break;
 			case VYW.KeyCodes.Right:
-				this.direction = VYW.Direction.Right;
+				newDir = VYW.Protocol.Direction.Right;
 				break;
 			case VYW.KeyCodes.Up:
-				this.direction = VYW.Direction.Up;
+				newDir = VYW.Protocol.Direction.Up;
 				break;
 			case VYW.KeyCodes.Down:
-				this.direction = VYW.Direction.Down;
+				newDir = VYW.Protocol.Direction.Down;
 				break;
 		}
+
+		if (!newDir) {
+			return;
+		}
+
+		var msg = VYW.Protocol.buildChangeDirection(this.gameData.playerIndex, newDir);
+		this.connector.send(msg);
 	};
 
 	VYW.SnakeEngine = SnakeEngine;

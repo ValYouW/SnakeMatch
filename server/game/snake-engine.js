@@ -3,7 +3,7 @@ var Board = require('../../common/game-objects/board.js').Board,
 	Pellet = require('../../common/game-objects/pellet.js').Pellet,
 	protocol = require('../../common/protocol.js');
 
-var INITIAL_SNAKE_SIZE = 6;
+var INITIAL_SNAKE_SIZE = 5;
 var MAX_PELLETS = 6;
 
 function SnakeEngine(width, height, cellSize) {
@@ -19,6 +19,18 @@ function SnakeEngine(width, height, cellSize) {
 
 	this.pellets = [];
 }
+
+/**
+ * Handles a message from the client signaling a direction change
+ * @param {ChangeDirMessage} data
+ */
+SnakeEngine.prototype.handleDirChangeMessage = function(data) {
+	if (data.playerIndex === 1) {
+		this.snake1.direction = data.newDirection;
+	} else if (data.playerIndex === 2) {
+		this.snake2.direction = data.newDirection;
+	}
+};
 
 /**
  * Updates the game, if either snake has lost due to collision, return its index
@@ -140,7 +152,7 @@ SnakeEngine.prototype.addPellet = function() {
 
 		if (!keepSearch) {
 			// Hooray we can add the pellet
-			this.pellets.push(new Pellet(loc.x, loc.y, loc.width));
+			this.pellets.push(new Pellet(loc));
 		}
 	}
 };

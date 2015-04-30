@@ -18,7 +18,8 @@ function Player(socket) {
 util.inherits(Player, Emitter);
 
 Player.Events = {
-	Disconnect: 'disconnect'
+	Disconnect: 'disconnect',
+	Message: 'message'
 };
 
 Player.prototype.send = function(msg) {
@@ -38,6 +39,9 @@ Player.prototype.disconnect = function() {
 };
 
 Player.prototype.onMessage = function(message) {
+	if (message) {
+		this.emit(Player.Events.Message, message);
+	}
 };
 
 Player.prototype.onDisconnect = function() {

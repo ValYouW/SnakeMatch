@@ -1,17 +1,14 @@
 // This file is shared between the client and the server, in case "window" is defined we assume it is the client
-(function(parent, Rectangle) {
+(function(parent) {
 
 	/**
 	 * Creates a new Pellet instance
-	 * @param {number} x - The pellet x location
-	 * @param {number} y - The pellet y location
-	 * @param {number} size - The pellet size
+	 * @param {Rectangle} loc - The pellet location
 	 * @param {string} color - The pellet color
 	 * @constructor
 	 */
-	function Pellet(x, y, size, color) {
-		this.location = new Rectangle(x, y, size, size);
-		this.size = size;
+	function Pellet(loc, color) {
+		this.location = loc;
 		this.color = color;
 	}
 
@@ -33,6 +30,4 @@
 	parent.Pellet = Pellet;
 
 // Pass in the correct object (server vs client)
-}(typeof window === 'undefined' ? module.exports : window.VYW,
-  typeof window === 'undefined' ? require('../rectangle.js').Rectangle : window.VYW.Rectangle));
-
+}(typeof window === 'undefined' ? module.exports : window.VYW));

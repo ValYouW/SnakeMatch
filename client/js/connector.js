@@ -107,6 +107,17 @@
 	};
 
 	/**
+	 * Sends a message to the server
+	 * @param {string} msg - The message to send
+	 */
+	Connector.prototype.send = function(msg) {
+		if (!this.socket) {return;}
+		try {
+			this.socket.send(msg);
+		} catch (ignore) {}
+	};
+
+	/**
 	 * @typedef {Connector} VYW.Connector
 	 */
 	VYW.Connector = Connector;

@@ -37,7 +37,8 @@ if (typeof window !== 'undefined') {
 		Steady: '3',
 		Go: '4',
 		Update: '5',
-		GameOver: '6'
+		GameOver: '6',
+		ChangeDirection: '7'
 	};
 
 	// ------------- Model Classes -------------
@@ -90,6 +91,15 @@ if (typeof window !== 'undefined') {
 		this.pellets = [];
 		this.player1Score = 0;
 		this.player2Score = 0;
+	}
+
+	/**
+	 * @constructor
+	 */
+	function ChangeDirMessage() {
+		Message.call(this, Protocol.Messages.ChangeDirection);
+		this.playerIndex = 0;
+		this.newDirection = 0;
 	}
 
 	// ------------- End Model Classes -------------
@@ -173,6 +183,11 @@ if (typeof window !== 'undefined') {
 		return msg;
 	};
 
+	Protocol.buildChangeDirection = function(playerIndex, newDir) {
+		// ChangeDirection: 7#playerIndex#newDirection
+		return Protocol.Messages.ChangeDirection + DATA_SEP + playerIndex + DATA_SEP + newDir;
+	};
+
 	// ------------- End Encode Functions -------------
 
 	// ------------- Decode Functions -------------
@@ -199,6 +214,8 @@ if (typeof window !== 'undefined') {
 			case Protocol.Messages.GameOver:
 				// No specific data for this message type
 				return Protocol.parseGameOverMessage(parts);
+			case Protocol.Messages.ChangeDirection:
+				return Protocol.parseChangeDirectionMessage(parts);
 			default:
 				return null;
 		}
@@ -376,6 +393,24 @@ if (typeof window !== 'undefined') {
 
 		res.player1Score = player1Score;
 		res.player2Score = player2Score;
+
+		return res;
+	};
+
+	Protocol.parseChangeDirectionMessage = function(data) {
+		// ChangeDirection: playerIndex#newDirection
+
+		if (data.length < 2) {
+			return null;
+		}
+
+		var res = new ChangeDirMessage();
+		res.playerIndex = parseInt(data[0]);
+		res.newDirection = data[1];
+
+		if (!res.playerIndex || !res.newDirection) {
+			return null;
+		}
 
 		return res;
 	};

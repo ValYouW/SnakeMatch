@@ -8,6 +8,7 @@ var Emitter = require('events').EventEmitter,
 var MATCH_TIME = 60000; // In milliseconds
 var MATCH_EXTENSION_TIME = 10000;
 var UPD_FREQ = 100;
+var STEADY_WAIT = 3;
 var BOARD = {
 	WIDTH: 500,
 	HEIGHT: 500,
@@ -18,13 +19,16 @@ function Match(player1, player2) {
 	Emitter.call(this);
 	this.id = uuid.v1();
 	this.gameTimer = null;
-	this.steadyLeft = 5;
+	this.steadyLeft = STEADY_WAIT;
 	this.matchTime = MATCH_TIME;
 	this.player1 = player1;
 	this.player2 = player2;
 
 	this.player1.on(Player.Events.Disconnect, this.onPlayerDisconnect.bind(this));
 	this.player2.on(Player.Events.Disconnect, this.onPlayerDisconnect.bind(this));
+
+	this.player1.on(Player.Events.Message, this.onPlayerMessage.bind(this));
+	this.player2.on(Player.Events.Message, this.onPlayerMessage.bind(this));
 
 	this.snakeEngine = new SnakeEngine(BOARD.WIDTH, BOARD.HEIGHT, BOARD.CELL);
 }
@@ -115,6 +119,19 @@ Match.prototype.onPlayerDisconnect = function(player) {
 	}
 
 	this.gameOver();
+};
+
+Match.prototype.onPlayerMessage = function(msg) {
+	var message = protocol.parseMessage(msg);
+	if (!message) {
+		return;
+	}
+
+	switch (message.type) {
+		case protocol.Messages.ChangeDirection:
+			this.snakeEngine.handleDirChangeMessage(message);
+			break;
+	}
 };
 
 Match.prototype.gameOver = function() {
