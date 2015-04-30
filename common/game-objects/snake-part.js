@@ -11,7 +11,9 @@
 	 */
 	function SnakePart(x, y, size, color, following) {
 		following = following || null;
+		/*@type {Rectangle}*/
 		this.location = new Rectangle(x, y, size, size);
+
 		this.size = size;
 		this.color = color;
 		this.prevLocation = null;

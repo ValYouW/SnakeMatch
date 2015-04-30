@@ -47,7 +47,6 @@
 	 * @param {Graphics} graphics - The game graphics
 	 */
 	Board.prototype.draw = function(graphics) {
-		graphics.clear();
 		graphics.fillRectangle(this.rectangle,  this.color);
 		graphics.drawRectangle(this.rectangle, this.borderColor);
 	};

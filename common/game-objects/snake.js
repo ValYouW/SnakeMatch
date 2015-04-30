@@ -5,17 +5,18 @@
 	 * Creates a new snake
 	 * @param {number} startX - The snake head X
 	 * @param {number} startY - The snake head Y
-	 * @param {number} size - The size of a single snake part
+	 * @param {number} partSize - The size of a single snake part
 	 * @param {number} length - The total number of parts of the snake
 	 * @param {Direction} direction - The direction of the snake
 	 * @param color
 	 * @constructor
 	 */
-	function Snake(startX, startY, size, length, direction, color) {
+	function Snake(startX, startY, partSize, length, direction, color) {
+		/* @type {SnakePart[]} */
 		this.parts = [];
 
 		// Create the head
-		var part = new SnakeHead(startX, startY, size, color);
+		var part = new SnakeHead(startX, startY, partSize, color);
 		this.parts.push(part);
 
 		// grow will be used in order to create the snake parts in the correct direction
@@ -32,11 +33,19 @@
 
 		// Create the rest of the snake body
 		for (var i = 0; i < length - 1; ++i) {
-			startX += (grow * size);
-			part = new SnakePart(startX, startY, size, color, this.parts[this.parts.length-1]);
+			startX += (grow * partSize);
+			part = new SnakePart(startX, startY, partSize, color, this.parts[this.parts.length-1]);
 			this.parts.push(part);
 		}
 	}
+
+	Object.defineProperty(Snake.prototype, 'color', {
+		set: function(color) {
+			for (var i = 0; i < this.parts.length; ++i) {
+				this.parts[i].color = color;
+			}
+		}
+	});
 
 	/**
 	 * Adds a new tail to the snake
@@ -62,7 +71,7 @@
 
 	/**
 	 * Draw the snake
-	 * @param {VYW.Graphics} graphics - The Graphics object
+	 * @param {Graphics} graphics - The Graphics object
 	 */
 	Snake.prototype.draw = function(graphics) {
 		for (var i = 0; i < this.parts.length; ++i) {

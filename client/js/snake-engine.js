@@ -14,8 +14,8 @@
 		this.settings = new VYW.GameSettings(settings);
 
 		this.board = null;
-		this.homeSnake = null;
-		this.awaySnake = null;
+		this.snake1 = null;
+		this.snake2 = null;
 		this.pellets = [];
 		this.gameData = new VYW.GameData(this.settings);
 
@@ -53,14 +53,27 @@
 
 	/**
 	 * Handles a ready message from the server
-	 * @param {GetReadyMessage} readyMessage
+	 * @param {GetReadyMessage} data
 	 */
-	SnakeEngine.prototype.handleReadyMessage = function(readyMessage) {
+	SnakeEngine.prototype.handleReadyMessage = function(data) {
+		// Set some game data
 		this.gameData.state = VYW.GameData.GameState.Ready;
-		this.gameData.playerIndex = readyMessage.playerIndex;
-		this.board = new VYW.Board(readyMessage.boardWidth, readyMessage.boardHeight, readyMessage.boardCellSize, this.settings.boardColor);
-		this.canvas.width = readyMessage.boardWidth;
-		this.canvas.height = readyMessage.boardHeight;
+		this.gameData.playerIndex = data.playerIndex;
+
+		// Create the board and adjust canvas size
+		this.board = new VYW.Board(data.board.width, data.board.height, data.board.cellSize, this.settings.boardColor);
+		this.canvas.width = data.board.width;
+		this.canvas.height = data.board.height;
+
+		// Create the snakes (we assume the home player is snake1, will switch color later if not)
+		this.snake1 = new VYW.Snake(data.snake1.x, data.snake1.y, data.board.cellSize, data.snake1.size, data.snake1.direction, this.settings.homeSnakeColor);
+		this.snake2 = new VYW.Snake(data.snake2.x, data.snake2.y, data.board.cellSize, data.snake2.size, data.snake2.direction, this.settings.awaySnakeColor);
+
+		// If the home snake is not player1 switch.
+		if (data.playerIndex !== 1) {
+			this.snake1.color = this.settings.awaySnakeColor;
+			this.snake2.color = this.settings.homeSnakeColor;
+		}
 	};
 
 	/**
@@ -84,34 +97,40 @@
 	SnakeEngine.prototype.handleGameUpdateMessage = function(data) {
 		this.gameData.player1Score = data.player1Score;
 		this.gameData.player2Score = data.player2Score;
+		this.gameData.timeToEnd = data.timeToEnd;
+
+		this.snake1.direction = data.player1Direction;
+		this.snake1.update();
+		this.snake2.direction = data.player2Direction;
+		this.snake2.update();
 	};
 
 	SnakeEngine.prototype.handleGameOverMessage = function(reason, winningPlayerIndex) {
-
+		this.gameData.state = VYW.GameData.GameState.GameOver;
+		this.gameData.winningPlayer = winningPlayerIndex;
 	};
-
-
-
-
-	// todo: Subscribe to connector events.
-	// Ready: set the canvas size and create the board object and snakes
-	// Steady: print to screen the steady
-	// Go: subscribe to keyboard events
-	// Update: update the snakes locations property and draw all
 
 	/**
 	 * Draws the game
 	 */
 	SnakeEngine.prototype.draw = function() {
-		// First clear canvas
 		this.graphics.clear();
+		if (this.board) { this.board.draw(this.graphics); }
+		if (this.snake1) { this.snake1.draw(this.graphics); }
+		if (this.snake2) { this.snake2.draw(this.graphics); }
+		if (this.gameData) { this.gameData.draw(this.graphics); }
 
-		this.gameData.draw(this.graphics);
+		// No need to reload the draw timer if we are disconnected or game over.
+		if (this.gameData &&
+			(this.gameData.state === VYW.GameData.GameState.Disconnected || this.gameData.state === VYW.GameData.GameState.GameOver)) {
+			return;
+		}
+
 		win.requestAnimationFrame(this.draw.bind(this));
 
 //		this.board.draw(this.graphics);
-//		this.homeSnake.draw(this.graphics);
-//		this.awaySnake.draw(this.graphics);
+//		this.snake1.draw(this.graphics);
+//		this.snake2.draw(this.graphics);
 //
 //		// Draw the pellets
 //		for (var i = 0; i < this.pellets.length; ++i) {

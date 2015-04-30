@@ -36,10 +36,10 @@ Match.Events = {
 
 Match.prototype.start = function() {
 	// Build the ready message for each player
-	var msg = protocol.buildReady(1, this.snakeEngine.board);
+	var msg = protocol.buildReady(1, this.snakeEngine.board, this.snakeEngine.snake1, this.snakeEngine.snake2);
 	this.player1.send(msg);
 
-	msg = protocol.buildReady(2, this.snakeEngine.board);
+	msg = protocol.buildReady(2, this.snakeEngine.board, this.snakeEngine.snake1, this.snakeEngine.snake2);
 	this.player2.send(msg);
 
 	this.steady();

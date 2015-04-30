@@ -57,9 +57,9 @@ if (typeof window !== 'undefined') {
 	function GetReadyMessage() {
 		Message.call(this, Protocol.Messages.Ready);
 		this.playerIndex = 0;
-		this.boardWidth = 0;
-		this.boardHeight = 0;
-		this.boardCellSize = 0;
+		this.board = { width: 0, height: 0, cellSize: 0 };
+		this.snake1 = { x: 0, y: 0, size: 0, direction: 0 };
+		this.snake2 = { x: 0, y: 0, size: 0, direction: 0 };
 	}
 
 	/**
@@ -101,9 +101,20 @@ if (typeof window !== 'undefined') {
 		return Protocol.Messages.Pending;
 	};
 
-	Protocol.buildReady = function(playerIndex, board) {
-		// Ready: 2#playerIndex#boardWidth#boardHeight#cellSize
-		return Protocol.Messages.Ready + DATA_SEP + playerIndex + DATA_SEP + board.rectangle.width + DATA_SEP + board.rectangle.height + DATA_SEP + board.boxSize;
+	/**
+	 *
+	 * @param playerIndex
+	 * @param board
+	 * @param {Snake} snake1
+	 * @param {Snake} snake2
+	 */
+	Protocol.buildReady = function(playerIndex, board, snake1, snake2) {
+		// Ready: 2#playerIndex#boardWidth#boardHeight#cellSize#snake1#snake2
+		// snake: x,y,size,direction
+		var msg = Protocol.Messages.Ready + DATA_SEP + playerIndex + DATA_SEP + board.rectangle.width + DATA_SEP + board.rectangle.height + DATA_SEP + board.boxSize + DATA_SEP;
+		msg += snake1.parts[0].location.x + OBJ_SEP + snake1.parts[0].location.y + OBJ_SEP + snake1.parts.length + OBJ_SEP + snake1.direction + DATA_SEP;
+		msg += snake2.parts[0].location.x + OBJ_SEP + snake2.parts[0].location.y + OBJ_SEP + snake2.parts.length + OBJ_SEP + snake2.direction;
+		return msg;
 	};
 
 	Protocol.buildSteady = function(tts) {
@@ -199,24 +210,60 @@ if (typeof window !== 'undefined') {
 	 * @returns {GetReadyMessage}
 	 */
 	Protocol.parseGetReadyMessage = function(data) {
-		// GetReady message: playerIndex#boardWidth#boardHeight#cellSize
+		// GetReady message: playerIndex#boardWidth#boardHeight#cellSize#snake1#snake2
+		// snake: x,y,size,direction
+
 		// Remember that the message already got split, so we have all in the array.
-		if (data.length < 4) {
+		if (data.length < 6) {
 			return null;
 		}
 
 		var res = new GetReadyMessage();
+
+		// Parse player index and board data
 		res.playerIndex = parseInt(data[0]);
-		res.boardWidth = parseInt(data[1]);
-		res.boardHeight = parseInt(data[2]);
-		res.boardCellSize = parseInt(data[3]);
+		res.board.width = parseInt(data[1]);
+		res.board.height = parseInt(data[2]);
+		res.board.cellSize = parseInt(data[3]);
 
 		// Check that we got all positive values
-		if (!res.playerIndex || !res.boardWidth || !res.boardHeight || !res.boardCellSize) {
+		if (!res.playerIndex || !res.board.width || !res.board.height || !res.board.cellSize) {
 			return null;
-		} else {
-			return res;
 		}
+
+		// Snake 1
+		var snakeData = data[4].split(OBJ_SEP);
+		if (snakeData.length < 4) {
+			return null;
+		}
+
+		res.snake1.x = parseInt(snakeData[0]);
+		res.snake1.y = parseInt(snakeData[1]);
+		res.snake1.size = parseInt(snakeData[2]);
+		res.snake1.direction = snakeData[3];
+
+		// validate, x/y can be 0 that's why we check isNaN and not just (!res.snake1.x)
+		if (isNaN(res.snake1.x) || isNaN(res.snake1.y) || !res.snake1.size || !res.snake1.direction) {
+			return null;
+		}
+
+		// Snake 2
+		snakeData = data[5].split(OBJ_SEP);
+		if (snakeData.length < 4) {
+			return null;
+		}
+
+		res.snake2.x = parseInt(snakeData[0]);
+		res.snake2.y = parseInt(snakeData[1]);
+		res.snake2.size = parseInt(snakeData[2]);
+		res.snake2.direction = snakeData[3];
+
+		// validate, x/y can be 0 that's why we check isNaN and not just (!res.snake1.x)
+		if (isNaN(res.snake2.x) || isNaN(res.snake2.y) || !res.snake2.size || !res.snake2.direction) {
+			return null;
+		}
+
+		return res;
 	};
 
 	Protocol.parseSteadyMessage = function(data) {
@@ -326,7 +373,6 @@ if (typeof window !== 'undefined') {
 		if (isNaN(player1Score) || isNaN(player2Score)) {
 			return null;
 		}
-
 
 		res.player1Score = player1Score;
 		res.player2Score = player2Score;

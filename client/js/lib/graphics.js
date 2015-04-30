@@ -1,5 +1,7 @@
 (function(VYW) {
 
+	var DEFAULT_COLOR = '#000000';
+
 	/**
 	 * Creates a new Graphics instance
 	 * @param {object} canvas - An HTML Canvas element
@@ -35,7 +37,7 @@
 	Graphics.prototype.fillRectangle = function(rect, color) {
 		this.context.beginPath();
 		this.context.rect(rect.x, rect.y, rect.width, rect.height);
-		this.context.fillStyle = color || '#000000';
+		this.context.fillStyle = color || DEFAULT_COLOR;
 		this.context.fill();
 	};
 
@@ -47,7 +49,7 @@
 	Graphics.prototype.drawRectangle = function(rect, color) {
 		this.context.beginPath();
 		this.context.rect(rect.x, rect.y, rect.width, rect.height);
-		this.context.strokeStyle = color || '#000000';
+		this.context.strokeStyle = color || DEFAULT_COLOR;
 		this.context.stroke();
 	};
 
@@ -62,8 +64,8 @@
 	 */
 	Graphics.prototype.drawText = function(text, x, y, color, font, align) {
 		if (typeof font !== 'undefined') {this.context.font = font;}
-		if (typeof color !== 'undefined') {this.context.fillStyle = color;}
-		if (typeof align !== 'undefined') {this.context.textAlign = align;}
+		if (typeof color !== 'undefined') {this.context.fillStyle = color;} else {this.context.fillStyle = DEFAULT_COLOR;}
+		if (typeof align !== 'undefined') {this.context.textAlign = align;} else {this.context.textAlign = Graphics.TextAlignment.Left;}
 
 		this.context.fillText(text, x, y);
 	};

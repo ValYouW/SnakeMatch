@@ -27,7 +27,7 @@ module.exports = function(grunt) {
 		},
 		watch: {
 			scripts: {
-				files: ['client/**/*.*', '!client/deploy/**/*.*', 'common/*.js'],
+				files: ['client/**/*.*', '!client/deploy/**/*.*', 'common/**/*.js'],
 				tasks: ['client'],
 				options: {
 					debounceDelay: 5000
