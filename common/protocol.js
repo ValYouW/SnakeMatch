@@ -275,6 +275,12 @@ if (typeof window !== 'undefined') {
 		res.player1Direction = dirs[0];
 		res.player2Direction = dirs[1];
 
+		// Parse pellets
+		var pellets = data[2].split(OBJ_SEP);
+		for (var i = 0; i < pellets.length; ++i) {
+			res.pellets.push(pellets[i]);
+		}
+
 		// Parse players scores
 		var scores = data[3].split(OBJ_SEP);
 		if (scores.length < 2) {
@@ -284,9 +290,7 @@ if (typeof window !== 'undefined') {
 		res.player1Score = scores[0];
 		res.player2Score = scores[1];
 
-		// Parse pellets
-
-		return null;
+		return res;
 	};
 
 	// ------------- End Decode Functions -------------
