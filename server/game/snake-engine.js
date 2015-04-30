@@ -1,10 +1,19 @@
 var Board = require('../../common/game-objects/board.js').Board,
 	Snake = require('../../common/game-objects/snake.js').Snake,
 	Pellet = require('../../common/game-objects/pellet.js').Pellet,
-	protocol = require('../../common/protocol.js');
+	protocol = require('../../common/protocol.js').Protocol;
 
 var INITIAL_SNAKE_SIZE = 5;
 var MAX_PELLETS = 6;
+
+/**
+ * Represents a game update response
+ * @constructor
+ */
+function UpdateResponse() {
+	this.loosingSnake = -1;
+	this.pelletsUpdate = false;
+}
 
 function SnakeEngine(width, height, cellSize) {
 	this.board = new Board(width, height, cellSize);
@@ -26,28 +35,31 @@ function SnakeEngine(width, height, cellSize) {
  */
 SnakeEngine.prototype.handleDirChangeMessage = function(data) {
 	if (data.playerIndex === 1) {
-		this.snake1.direction = data.newDirection;
+		this.snake1.changeDirection(data.newDirection);
 	} else if (data.playerIndex === 2) {
-		this.snake2.direction = data.newDirection;
+		this.snake2.changeDirection(data.newDirection);
 	}
 };
 
 /**
  * Updates the game, if either snake has lost due to collision, return its index
- * @returns {Number} The index of the LOOSING snake
+ * @returns {UpdateResponse} The index of the LOOSING snake
  */
 SnakeEngine.prototype.update = function() {
+	var res = new UpdateResponse();
+
 	// Update snake1
 	this.snake1.update();
 
 	// Check if the snake collides with itself or out-of-bounds
 	var collision = this.checkCollision(this.snake1);
 	if (collision) {
-		return 1;
+		res.loosingSnake = 1;
+		return res;
 	}
 
 	// Check if the snake eats a pellet
-	this.eatPellet(this.snake1);
+	res.pelletsUpdate = this.eatPellet(this.snake1);
 
 	// Update snake2
 	this.snake2.update();
@@ -55,17 +67,18 @@ SnakeEngine.prototype.update = function() {
 	// Check if the snake collides with itself or out-of-bounds
 	collision = this.checkCollision(this.snake2);
 	if (collision) {
-		return 2;
+		res.loosingSnake = 2;
+		return res;
 	}
 
 	// Check if the snake eats a pellet
-	this.eatPellet(this.snake2);
+	res.pelletsUpdate = this.eatPellet(this.snake2) || res.pelletsUpdate;
 
 	// Finally add new pellet
-	this.addPellet();
+	res.pelletsUpdate = this.addPellet() || res.pelletsUpdate;
 
 	// No one lost (yet...).
-	return -1;
+	return res;
 };
 
 /**
@@ -96,6 +109,7 @@ SnakeEngine.prototype.checkCollision = function(snake) {
 /**
  * Check if the snake eats a pellet, add new ones if necessary
  * @param {Snake} snake - The snake that should eat
+ * @returns {boolean} Whether the snake ate a pellet
  * @private
  */
 SnakeEngine.prototype.eatPellet = function(snake) {
@@ -107,19 +121,22 @@ SnakeEngine.prototype.eatPellet = function(snake) {
 
 			// Remove this pellet
 			this.pellets.splice(i, 1);
-			break;
+			return true;
 		}
 	}
+
+	return false;
 };
 
 /**
  * Adds a new pellet to the game
+ * @returns {boolean} Whether a new pellet added
  * @private
  */
 SnakeEngine.prototype.addPellet = function() {
 	// Check if we should add pellets
 	if (this.pellets.length >= MAX_PELLETS || Math.random() > 0.2) {
-		return;
+		return false;
 	}
 
 	// Keep loop until we found a spot for a pellet (theoretically this can turn into an infinite loop, so a solution could
@@ -155,7 +172,8 @@ SnakeEngine.prototype.addPellet = function() {
 			this.pellets.push(new Pellet(loc));
 		}
 	}
-};
 
+	return true;
+};
 
 module.exports = SnakeEngine;

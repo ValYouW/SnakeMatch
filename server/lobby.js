@@ -1,6 +1,6 @@
 var Player = require('./game/player.js'),
 	Match = require('./game/match.js'),
-	protocol = require('./../common/protocol.js');
+	protocol = require('./../common/protocol.js').Protocol;
 
 var players = {};
 var matches = {};

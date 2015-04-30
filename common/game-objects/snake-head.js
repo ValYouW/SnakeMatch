@@ -24,18 +24,19 @@
 		// Do the base update
 		SnakePart.prototype.update.call(this);
 
-		// Update the head direction according to the new direction, MAKE SURE we can do the change (can't do 180 degrees turns)
-		if (newDirection === protocol.Direction.Right && this.direction !== protocol.Direction.Left) {
-			this.direction = newDirection;
-		} else if (newDirection === protocol.Direction.Left && this.direction !== protocol.Direction.Right) {
-			this.direction = newDirection;
-		} else if (newDirection === protocol.Direction.Up && this.direction !== protocol.Direction.Down) {
-			this.direction = newDirection;
-		} else if (newDirection === protocol.Direction.Down && this.direction !== protocol.Direction.Up) {
-			this.direction = newDirection;
-		}
+//		// Update the head direction according to the new direction, MAKE SURE we can do the change (can't do 180 degrees turns)
+//		if (newDirection === protocol.Direction.Right && this.direction !== protocol.Direction.Left) {
+//			this.direction = newDirection;
+//		} else if (newDirection === protocol.Direction.Left && this.direction !== protocol.Direction.Right) {
+//			this.direction = newDirection;
+//		} else if (newDirection === protocol.Direction.Up && this.direction !== protocol.Direction.Down) {
+//			this.direction = newDirection;
+//		} else if (newDirection === protocol.Direction.Down && this.direction !== protocol.Direction.Up) {
+//			this.direction = newDirection;
+//		}
 
 		// Update location based on updated direction
+		this.direction = newDirection;
 		switch (this.direction) {
 			case protocol.Direction.Right:
 				this.location.x += this.size;
@@ -57,5 +58,5 @@
 // Pass in the correct object (server vs client)
 }(typeof window === 'undefined' ? module.exports : window.VYW,
   typeof window === 'undefined' ? require('util') : window.VYW.Util,
-  typeof window === 'undefined' ? require('../protocol.js') : window.VYW.Protocol,
+  typeof window === 'undefined' ? require('../protocol.js').Protocol : window.VYW.Protocol,
   typeof window === 'undefined' ? require('./snake-part.js').SnakePart : window.VYW.SnakePart));

@@ -102,15 +102,17 @@
 
 		// Update players
 		this.snake1.direction = data.player1Direction;
-		this.snake1.update();
+		this.snake1.update(data.player1Size);
 		this.snake2.direction = data.player2Direction;
-		this.snake2.update();
+		this.snake2.update(data.player2Size);
 
 		// Update pellets
-		this.pellets = [];
-		for (var i = 0; i < data.pellets.length; ++i) {
-			var loc = this.board.toScreen(data.pellets[i]);
-			this.pellets.push(new VYW.Pellet(loc, this.settings.pelletColor));
+		if (data.pellets) {
+			this.pellets = [];
+			for (var i = 0; i < data.pellets.length; ++i) {
+				var loc = this.board.toScreen(data.pellets[i]);
+				this.pellets.push(new VYW.Pellet(loc, this.settings.pelletColor));
+			}
 		}
 	};
 

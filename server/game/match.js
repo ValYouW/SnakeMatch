@@ -1,7 +1,7 @@
 var Emitter = require('events').EventEmitter,
 	Player = require('./player.js'),
 	SnakeEngine = require('./snake-engine.js'),
-	protocol = require('./../../common/protocol.js'),
+	protocol = require('./../../common/protocol.js').Protocol,
 	util = require('util'),
 	uuid = require('node-uuid');
 
@@ -70,23 +70,23 @@ Match.prototype.update = function() {
 	this.matchTime -= UPD_FREQ;
 
 	// Update the game
-	var losingSnake = this.snakeEngine.update();
+	var res = this.snakeEngine.update();
 
 	// If no snake lost on this update and there is more time we just reload the update timer
-	if (losingSnake < 0 && this.matchTime > 0) {
+	if (res.loosingSnake < 0 && this.matchTime > 0) {
 		this.gameTimer = setTimeout(this.update.bind(this), UPD_FREQ);
-		this.sendUpdateMessage();
+		this.sendUpdateMessage(res);
 		return;
 	}
 
 	var msg;
 	// If no snake lost it means time's up, lets see who won.
-	if (losingSnake < 0) {
+	if (res.loosingSnake < 0) {
 		// We don't like ties, lets add more time to the game
 		if (this.snakeEngine.snake1.parts.length === this.snakeEngine.snake2.parts.length) {
 			this.matchTime += MATCH_EXTENSION_TIME;
 			this.gameTimer = setTimeout(this.update.bind(this), UPD_FREQ);
-			this.sendUpdateMessage();
+			this.sendUpdateMessage(res);
 			return;
 		}
 
@@ -94,7 +94,7 @@ Match.prototype.update = function() {
 		msg = protocol.buildGameOver(protocol.GameOverReason.End, 0, this.snakeEngine.snake1, this.snakeEngine.snake2);
 	} else {
 		// Ok, some snake had a collision and lost, since we have only 2 players we can send a GameOver message.
-		var winningPlayer = (losingSnake + 2) % 2 + 1;
+		var winningPlayer = (res.loosingSnake + 2) % 2 + 1;
 		msg = protocol.buildGameOver(protocol.GameOverReason.Collision, winningPlayer);
 	}
 
@@ -104,8 +104,13 @@ Match.prototype.update = function() {
 	this.emit(Match.Events.GameOver, this);
 };
 
-Match.prototype.sendUpdateMessage = function() {
-	var msg = protocol.buildUpdate(this.matchTime, this.snakeEngine.snake1, this.snakeEngine.snake2, this.snakeEngine.pellets, this.snakeEngine.board);
+/**
+ * Sends an update message to the clients
+ * @param {UpdateResponse} res
+ */
+Match.prototype.sendUpdateMessage = function(res) {
+	var pellets = res.pelletsUpdate ? this.snakeEngine.pellets : null;
+	var msg = protocol.buildUpdate(this.matchTime, this.snakeEngine.snake1, this.snakeEngine.snake2, pellets, this.snakeEngine.board);
 	this.player1.send(msg);
 	this.player2.send(msg);
 };

@@ -80,8 +80,14 @@
 
 	/**
 	 * Updates the snake
+	 * @param {number} [newSize] - The new snake size
 	 */
-	Snake.prototype.update = function() {
+	Snake.prototype.update = function(newSize) {
+		// Check if the snake grew
+		if (newSize && newSize > this.parts.length) {
+			this.addTail();
+		}
+
 		// Update the head first
 		this.parts[0].update(this.direction);
 
@@ -105,6 +111,6 @@
 
 // Pass in the correct object (server vs client)
 }(typeof window === 'undefined' ? module.exports : window.VYW,
-  typeof window === 'undefined' ? require('../protocol.js') : window.VYW.Protocol,
+  typeof window === 'undefined' ? require('../protocol.js').Protocol : window.VYW.Protocol,
   typeof window === 'undefined' ? require('./snake-head.js').SnakeHead : window.VYW.SnakeHead,
   typeof window === 'undefined' ? require('./snake-part.js').SnakePart : window.VYW.SnakePart));

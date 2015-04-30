@@ -4,7 +4,9 @@ if (typeof window !== 'undefined') {
 	window.VYW.Protocol = {};
 }
 
-(function(Protocol) {
+(function(parent) {
+	var Protocol = {};
+
 	// Hold some data characters (delimiters etc)
 	var DATA_SEP = '#',
 		OBJ_SEP = ',';
@@ -88,7 +90,9 @@ if (typeof window !== 'undefined') {
 		this.timeToEnd = -1;
 		this.player1Direction = '';
 		this.player2Direction = '';
-		this.pellets = [];
+		this.player1Size = 0;
+		this.player2Size = 0;
+		this.pellets = null;
 		this.player1Score = 0;
 		this.player2Score = 0;
 	}
@@ -99,6 +103,7 @@ if (typeof window !== 'undefined') {
 	function ChangeDirMessage() {
 		Message.call(this, Protocol.Messages.ChangeDirection);
 		this.playerIndex = 0;
+		/* @type {Protocol.Direction} */
 		this.newDirection = 0;
 	}
 
@@ -138,20 +143,24 @@ if (typeof window !== 'undefined') {
 	};
 
 	Protocol.buildUpdate = function(tte, snake1, snake2, pellets, board) {
-		// Update: 5#timeToEnd#playersDirection#pellets#score
+		// Update: 5#timeToEnd#playersDirection#snakesSize#pellets#score
 		// playersDirection - player1Direction,player2Direction
+		// snakeSizes - snake1Size,snake2Size
 		// pellets - cellIndex,cellIndex,cellIndex...
 		// score - player1Score,player2Score
 
 		var msg = Protocol.Messages.Update + DATA_SEP + tte + DATA_SEP + snake1.direction + OBJ_SEP + snake2.direction + DATA_SEP;
+		msg += snake1.parts.length + OBJ_SEP + snake2.parts.length + DATA_SEP;
 
 		// Now add the pellets
-		var currPellet;
-		var delim;
-		for (var i = 0; i < pellets.length; ++i) {
-			currPellet = pellets[i];
-			delim = (i === pellets.length - 1) ? '' : OBJ_SEP; // Don't add separator for the last element
-			msg += board.toBoxIndex(currPellet.location.x, currPellet.location.y) + delim;
+		if (pellets) {
+			var currPellet;
+			var delim;
+			for (var i = 0; i < pellets.length; ++i) {
+				currPellet = pellets[i];
+				delim = (i === pellets.length - 1) ? '' : OBJ_SEP; // Don't add separator for the last element
+				msg += board.toBoxIndex(currPellet.location.x, currPellet.location.y) + delim;
+			}
 		}
 
 		// Finally add the score
@@ -344,12 +353,13 @@ if (typeof window !== 'undefined') {
 	};
 
 	Protocol.parseUpdateMessage = function(data) {
-		// Update: [timeToEnd, playersDirection, pellets, score]
+		// Update: timeToEnd#playersDirection#snakesSize#pellets#score
 		// playersDirection - player1Direction,player2Direction
+		// snakeSizes - snake1Size,snake2Size
 		// pellets - cellIndex,cellIndex,cellIndex...
 		// score - player1Score,player2Score
 
-		if (data.length < 4) {
+		if (data.length < 5) {
 			return null;
 		}
 
@@ -370,29 +380,39 @@ if (typeof window !== 'undefined') {
 		res.player1Direction = dirs[0];
 		res.player2Direction = dirs[1];
 
+		// Parse players sizes
+		var sizes = data[2].split(OBJ_SEP);
+		if (sizes.length < 2) {
+			return null;
+		}
+
+		res.player1Size = parseInt(sizes[0]);
+		res.player2Size = parseInt(sizes[1]);
+		if (!res.player1Size || !res.player1Size) {
+			return null;
+		}
+
 		// Parse pellets (if we have)
-		if (data[2]) {
-			var pellets = data[2].split(OBJ_SEP);
+		if (data[3]) {
+			res.pellets = [];
+			var pellets = data[3].split(OBJ_SEP);
 			for (var i = 0; i < pellets.length; ++i) {
 				res.pellets.push(pellets[i]);
 			}
 		}
 
 		// Parse players scores
-		var scores = data[3].split(OBJ_SEP);
+		var scores = data[4].split(OBJ_SEP);
 		if (scores.length < 2) {
 			return null;
 		}
 
-		var player1Score = parseInt(scores[0]);
-		var player2Score = parseInt(scores[1]);
+		res.player1Score = parseInt(scores[0]);
+		res.player2Score = parseInt(scores[1]);
 		// The reason we check isNaN instead of (!player1Score) is that 0 is a valid value for this field
-		if (isNaN(player1Score) || isNaN(player2Score)) {
+		if (isNaN(res.player1Score) || isNaN(res.player2Score)) {
 			return null;
 		}
-
-		res.player1Score = player1Score;
-		res.player2Score = player2Score;
 
 		return res;
 	};
@@ -417,5 +437,7 @@ if (typeof window !== 'undefined') {
 
 	// ------------- End Decode Functions -------------
 
+	parent.Protocol = Protocol;
+
 // Pass in the correct object (server vs client)
-}(typeof window === 'undefined' ? module.exports : window.VYW.Protocol));
+}(typeof window === 'undefined' ? module.exports : window.VYW));
