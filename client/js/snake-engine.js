@@ -116,9 +116,18 @@
 		}
 	};
 
-	SnakeEngine.prototype.handleGameOverMessage = function(reason, winningPlayerIndex) {
+	/**
+	 * Handles a game over message
+	 * @param {GameOverMessage} data
+	 */
+	SnakeEngine.prototype.handleGameOverMessage = function(data) {
 		this.gameData.state = VYW.GameData.GameState.GameOver;
-		this.gameData.winningPlayer = winningPlayerIndex;
+		this.gameData.player1Score = data.player1Score >= 0 ? data.player1Score : this.gameData.player1Score;
+		this.gameData.player2Score = data.player2Score >= 0 ? data.player2Score : this.gameData.player2Score;
+		this.gameData.winningPlayer = data.winningPlayer;
+		if (data.reason === VYW.Protocol.GameOverReason.End) {
+			this.gameData.timeToEnd = 0;
+		}
 	};
 
 	/**
@@ -151,6 +160,7 @@
 	 */
 	SnakeEngine.prototype.handleKeyDown = function(e) {
 		var newDir = '';
+		// Get the new direction per key code
 		switch (e.keyCode) {
 			case VYW.KeyCodes.Left:
 				newDir = VYW.Protocol.Direction.Left;
@@ -167,6 +177,23 @@
 		}
 
 		if (!newDir) {
+			return;
+		}
+
+		// Find the home snake (whose keyboard input we handle) current direction, if it is the same stop.
+		var homeSnakeDir = this.gameData.playerIndex === 1 ? this.snake1.direction : this.snake2.direction;
+		if (newDir === homeSnakeDir) {
+			return;
+		}
+
+		// Make sure we can do the change (can't do 180 degrees turns)
+		if (newDir === VYW.Protocol.Direction.Right && homeSnakeDir === VYW.Protocol.Direction.Left) {
+			return;
+		} else if (newDir === VYW.Protocol.Direction.Left && homeSnakeDir === VYW.Protocol.Direction.Right) {
+			return;
+		} else if (newDir === VYW.Protocol.Direction.Up && homeSnakeDir === VYW.Protocol.Direction.Down) {
+			return;
+		} else if (newDir === VYW.Protocol.Direction.Down && homeSnakeDir === VYW.Protocol.Direction.Up) {
 			return;
 		}
 
