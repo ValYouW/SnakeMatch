@@ -80,7 +80,7 @@
 				this.onGameUpdate(message);
 				break;
 			case VYW.Protocol.Messages.GameOver:
-				this.onGameOver(message.reason, message.winningPlayer);
+				this.onGameOver(message);
 				break;
 			default:
 				this.disconnect(Connector.DisconnectReason.InvalidMessage);

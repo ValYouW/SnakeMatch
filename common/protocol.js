@@ -79,6 +79,8 @@ if (typeof window !== 'undefined') {
 	function GameOverMessage(reason) {
 		Message.call(this, Protocol.Messages.GameOver);
 		this.reason = reason;
+		this.player1Score = -1;
+		this.player2Score = -1;
 		this.winningPlayer = 0;
 	}
 
@@ -337,15 +339,16 @@ if (typeof window !== 'undefined') {
 					return null;
 				}
 
-				var player1Score = parseInt(data[1]);
-				var player2Score = parseInt(data[2]);
+				res.player1Score = parseInt(data[1]);
+				res.player2Score = parseInt(data[2]);
 				// The reason we check isNaN instead of (!player1Score) is that 0 is a valid value for this field
-				if (isNaN(player1Score) || isNaN(player2Score)) {
+				if (isNaN(res.player1Score) || isNaN(res.player2Score)) {
 					return null;
 				}
 
 				// For simplicity tie is not an option
-				res.winningPlayer = player1Score > player2Score ? 1 : 2;
+				res.winningPlayer = res.player1Score > res.player2Score ? 1 : 2;
+
 				return res;
 			default:
 				return null;
