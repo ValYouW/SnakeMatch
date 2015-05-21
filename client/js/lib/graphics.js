@@ -1,3 +1,6 @@
+/**
+ * This class is used for drawing on a Canvas
+ */
 (function(VYW) {
 
 	var DEFAULT_COLOR = '#000000';
@@ -70,17 +73,25 @@
 		this.context.fillText(text, x, y);
 	};
 
+	/**
+	 * Measure the width of a text with a given font
+	 * @param {string} str - The string to measure
+	 * @param {string} font - The font to measure with
+	 * @returns {Number}
+	 */
 	Graphics.prototype.measureText = function(str, font) {
+		// Save the current font, we want to replace the context font only for the measure
+		var oldFont = this.context.font;
 		if (font) {
-			var oldFont = this.context.font;
 			this.context.font = font;
-			var res = this.context.measureText(str).width;
-			this.context.font = oldFont;
-			return res;
 		}
 
-		return this.context.measureText(str).width;
+		var res = this.context.measureText(str).width;
+		this.context.font = oldFont;
+		return res;
 	};
+
+	// Export Graphics
 	VYW.Graphics = Graphics;
 
 }(window.VYW));

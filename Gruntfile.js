@@ -4,6 +4,7 @@ module.exports = function(grunt) {
 			options: {
 				separator: ';'
 			},
+			// Concat all scripts, order is important
 			scripts: {
 				src: [
 					'client/js/index.js',
@@ -18,6 +19,7 @@ module.exports = function(grunt) {
 				],
 				dest: 'client/deploy/all.js'
 			},
+			// We use concat for copy here
 			index: {
 				src: [
 					'client/index.html'
@@ -25,6 +27,7 @@ module.exports = function(grunt) {
 				dest: 'client/deploy/index.html'
 			}
 		},
+		// Rebuild client scripts on change
 		watch: {
 			scripts: {
 				files: ['client/**/*.*', '!client/deploy/**/*.*', 'common/**/*.js'],

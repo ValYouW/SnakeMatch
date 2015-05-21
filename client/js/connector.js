@@ -1,3 +1,6 @@
+/**
+ * This class is used for communicating with the server
+ */
 (function(VYW, win) {
 
 	/**
@@ -11,6 +14,8 @@
 		}
 
 		var self = this;
+
+		// Create a new WebSocket and register to its events
 		this.socket = new win.WebSocket('ws://' + host);
 		this.socket.onopen = function() {
 			// "raise" the onConnected event
@@ -39,7 +44,7 @@
 		SocketError: 2
 	};
 
-	// Those functions should be overriden by those who are interested
+	// Those functions should be overridden by those who are interested
 	// We could use event emitter but no real need so save the performance...
 	Connector.prototype.onConnected = function() {};
 	Connector.prototype.onDisconnect = function(reason) {};
@@ -57,12 +62,14 @@
 	Connector.prototype.handleMessage = function(data) {
 		if (!data) {return;}
 
+		// Parse the message and make sure we got something
 		var message = VYW.Protocol.parseMessage(data);
 		if (message === null) {
 			this.disconnect(Connector.DisconnectReason.InvalidMessage);
 			return;
 		}
 
+		// Raise the appropriate event based on the message type
 		switch (message.type) {
 			case VYW.Protocol.Messages.Pending:
 				this.onPendingMatch(message);
