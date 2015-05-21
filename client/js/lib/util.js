@@ -1,4 +1,6 @@
-// A node.js util for the client
+/**
+ * A node.js util for the client
+ */
 (function(VYW) {
 	var Util = {};
 
