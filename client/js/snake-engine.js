@@ -182,7 +182,7 @@
 	 * @private
 	 */
 	SnakeEngine.prototype.handleKeyDown = function(e) {
-		var newDir = '';
+		var newDir = null;
 		// Get the new direction per key code
 		switch (e.keyCode) {
 			case VYW.KeyCodes.Left:
@@ -221,7 +221,7 @@
 		}
 
 		// Build a message and send it
-		var msg = VYW.Protocol.buildChangeDirection(this.gameState.playerIndex, newDir);
+		var msg = VYW.Protocol.buildChangeDirection(newDir);
 		this.connector.send(msg);
 	};
 

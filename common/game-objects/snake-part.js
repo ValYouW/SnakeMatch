@@ -1,4 +1,3 @@
-// This file is shared between the client and the server, in case "window" is defined we assume it is the client
 (function(parent, Rectangle) {
 
 	/**
@@ -11,7 +10,7 @@
 	 */
 	function SnakePart(x, y, size, color, following) {
 		following = following || null;
-		/*@type {Rectangle}*/
+		/** @type {Rectangle} */
 		this.location = new Rectangle(x, y, size, size);
 
 		this.size = size;
@@ -47,6 +46,6 @@
 
 	parent.SnakePart = SnakePart;
 
-// Pass in the correct object (server vs client)
+// This file is shared between the client and the server, in case "window" is defined we assume it is the client
 }(typeof window === 'undefined' ? module.exports : window.VYW,
   typeof window === 'undefined' ? require('../rectangle.js').Rectangle : window.VYW.Rectangle));

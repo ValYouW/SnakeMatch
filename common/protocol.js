@@ -1,9 +1,7 @@
-// This file is shared between the client and the server, in case "window" is defined we assume it is the client
-if (typeof window !== 'undefined') {
-	window.VYW = window.VYW || {};
-	window.VYW.Protocol = {};
-}
-
+/**
+ * The protocol class expose methods for encoding/decoding the client/server messages,
+ * we could just use JSON.stringify/parse, but that wouldn't be efficient if we will increase the update freq
+ */
 (function(parent) {
 	var Protocol = {};
 
@@ -56,6 +54,7 @@ if (typeof window !== 'undefined') {
 
 	/**
 	 * @constructor
+	 * @extends {Message}
 	 */
 	function GetReadyMessage() {
 		Message.call(this, Protocol.Messages.Ready);
@@ -67,6 +66,7 @@ if (typeof window !== 'undefined') {
 
 	/**
 	 * @constructor
+	 * @extends {Message}
 	 */
 	function SteadyMessage() {
 		Message.call(this, Protocol.Messages.Steady);
@@ -75,6 +75,7 @@ if (typeof window !== 'undefined') {
 
 	/**
 	 * @constructor
+	 * @extends {Message}
 	 */
 	function GameOverMessage(reason) {
 		Message.call(this, Protocol.Messages.GameOver);
@@ -86,6 +87,7 @@ if (typeof window !== 'undefined') {
 
 	/**
 	 * @constructor
+	 * @extends {Message}
 	 */
 	function UpdateMessage() {
 		Message.call(this, Protocol.Messages.Update);
@@ -101,6 +103,7 @@ if (typeof window !== 'undefined') {
 
 	/**
 	 * @constructor
+	 * @extends {Message}
 	 */
 	function ChangeDirMessage() {
 		Message.call(this, Protocol.Messages.ChangeDirection);
@@ -114,19 +117,20 @@ if (typeof window !== 'undefined') {
 	// ------------- Encode Functions -------------
 
 	Protocol.buildPending = function() {
-		// Pending: 1
+		// Pending msg: 1
 		return Protocol.Messages.Pending;
 	};
 
 	/**
-	 *
-	 * @param playerIndex
-	 * @param board
+	 * Builds a ready message
+	 * @param {number} playerIndex - The index given to that player (either he is player1 or 2).
+	 * @param {Board} board - The board game object
 	 * @param {Snake} snake1
 	 * @param {Snake} snake2
+	 * @returns {string}
 	 */
 	Protocol.buildReady = function(playerIndex, board, snake1, snake2) {
-		// Ready: 2#playerIndex#boardWidth#boardHeight#cellSize#snake1#snake2
+		// Ready msg: 2#playerIndex#boardWidth#boardHeight#cellSize#snake1#snake2
 		// snake: x,y,size,direction
 		var msg = Protocol.Messages.Ready + DATA_SEP + playerIndex + DATA_SEP + board.rectangle.width + DATA_SEP + board.rectangle.height + DATA_SEP + board.boxSize + DATA_SEP;
 		msg += snake1.parts[0].location.x + OBJ_SEP + snake1.parts[0].location.y + OBJ_SEP + snake1.parts.length + OBJ_SEP + snake1.direction + DATA_SEP;
@@ -134,18 +138,36 @@ if (typeof window !== 'undefined') {
 		return msg;
 	};
 
+	/**
+	 * Builds a steady message
+	 * @param {number} tts - The time-to-start
+	 * @returns {string}
+	 */
 	Protocol.buildSteady = function(tts) {
-		// Steady: 3#timeToStart
+		// Steady msg: 3#timeToStart
 		return Protocol.Messages.Steady + DATA_SEP + tts;
 	};
 
+	/**
+	 * Builds a go message
+	 * @returns {string}
+	 */
 	Protocol.buildGo = function() {
-		// Go: 4
+		// Go msg: 4
 		return Protocol.Messages.Go;
 	};
 
+	/**
+	 * Builds an update message
+	 * @param {number} tte - The time-to-end of the game
+	 * @param {Snake} snake1
+	 * @param {Snake} snake2
+	 * @param {Pellet[]} pellets
+	 * @param {Board} board
+	 * @returns {string}
+	 */
 	Protocol.buildUpdate = function(tte, snake1, snake2, pellets, board) {
-		// Update: 5#timeToEnd#playersDirection#snakesSize#pellets#score
+		// Update msg: 5#timeToEnd#playersDirection#snakesSize#pellets#score
 		// playersDirection - player1Direction,player2Direction
 		// snakeSizes - snake1Size,snake2Size
 		// pellets - cellIndex,cellIndex,cellIndex...
@@ -171,6 +193,14 @@ if (typeof window !== 'undefined') {
 		return msg;
 	};
 
+	/**
+	 * Builds the game over message
+	 * @param {GameOverReason} reason - The reason why the game has ended
+	 * @param {number} [winningPlayerIndex] - Optional, The index of the winning player (either 1 or 2)
+	 * @param [snake1] - Optional. The first snake
+	 * @param [snake2] - Optional. The second snake
+	 * @returns {string}
+	 */
 	Protocol.buildGameOver = function(reason, winningPlayerIndex, snake1, snake2) {
 		// GameOver: 6#Reason#ExtraData...
 		//   PeerDisconnect - No extra data
@@ -194,15 +224,25 @@ if (typeof window !== 'undefined') {
 		return msg;
 	};
 
-	Protocol.buildChangeDirection = function(playerIndex, newDir) {
-		// ChangeDirection: 7#playerIndex#newDirection
-		return Protocol.Messages.ChangeDirection + DATA_SEP + playerIndex + DATA_SEP + newDir;
+	/**
+	 * Builds a change-direction message (this is from the client to the server)
+	 * @param {Direction} newDir - The new direction
+	 * @returns {string}
+	 */
+	Protocol.buildChangeDirection = function(newDir) {
+		// ChangeDirection: 7#newDirection
+		return Protocol.Messages.ChangeDirection + DATA_SEP + newDir;
 	};
 
 	// ------------- End Encode Functions -------------
 
 	// ------------- Decode Functions -------------
 
+	/**
+	 * Parse a message
+	 * @param {string} msg - The message
+	 * @returns {Message}
+	 */
 	Protocol.parseMessage = function(msg) {
 		// Message: "CODE#DATA"
 		if (!msg) {return null;}
@@ -233,12 +273,12 @@ if (typeof window !== 'undefined') {
 	};
 
 	/**
-	 *
+	 * Parse a get ready message
 	 * @param {string} data - The encoded message
 	 * @returns {GetReadyMessage}
 	 */
 	Protocol.parseGetReadyMessage = function(data) {
-		// GetReady message: playerIndex#boardWidth#boardHeight#cellSize#snake1#snake2
+		// GetReady data: playerIndex#boardWidth#boardHeight#cellSize#snake1#snake2
 		// snake: x,y,size,direction
 
 		// Remember that the message already got split, so we have all in the array.
@@ -294,9 +334,13 @@ if (typeof window !== 'undefined') {
 		return res;
 	};
 
+	/**
+	 * Parse a steady message
+	 * @param {string} data - The encoded message
+	 * @returns {SteadyMessage}
+	 */
 	Protocol.parseSteadyMessage = function(data) {
-		// Steady message contains the time to start (e.g "5")
-		// Remember that the message already got split, so we have all in the array.
+		// Steady data: time to start (e.g "5")
 		if (data.length < 1) {
 			return null;
 		}
@@ -312,8 +356,13 @@ if (typeof window !== 'undefined') {
 		}
 	};
 
+	/**
+	 * Parse a game over message
+	 * @param {string} data - The encoded message
+	 * @returns {GameOverMessage}
+	 */
 	Protocol.parseGameOverMessage = function(data) {
-		// GameOver message contains Reason#Extradata
+		// GameOver data: Reason#Extradata
 		if (data.length < 1) {
 			return null;
 		}
@@ -355,8 +404,13 @@ if (typeof window !== 'undefined') {
 		}
 	};
 
+	/**
+	 * Parse an update message
+	 * @param {string} data - The encoded message
+	 * @returns {UpdateMessage}
+	 */
 	Protocol.parseUpdateMessage = function(data) {
-		// Update: timeToEnd#playersDirection#snakesSize#pellets#score
+		// Update data: timeToEnd#playersDirection#snakesSize#pellets#score
 		// playersDirection - player1Direction,player2Direction
 		// snakeSizes - snake1Size,snake2Size
 		// pellets - cellIndex,cellIndex,cellIndex...
@@ -420,18 +474,23 @@ if (typeof window !== 'undefined') {
 		return res;
 	};
 
-	Protocol.parseChangeDirectionMessage = function(data) {
-		// ChangeDirection: playerIndex#newDirection
 
-		if (data.length < 2) {
+	/**
+	 * Parse a change direction message
+	 * @param {string} data - The encoded message
+	 * @returns {ChangeDirMessage}
+	 */
+	Protocol.parseChangeDirectionMessage = function(data) {
+		// ChangeDirection data: newDirection
+
+		if (data.length < 1) {
 			return null;
 		}
 
 		var res = new ChangeDirMessage();
-		res.playerIndex = parseInt(data[0]);
-		res.newDirection = data[1];
+		res.newDirection = data[0];
 
-		if (!res.playerIndex || !res.newDirection) {
+		if (!res.newDirection) {
 			return null;
 		}
 
@@ -442,5 +501,5 @@ if (typeof window !== 'undefined') {
 
 	parent.Protocol = Protocol;
 
-// Pass in the correct object (server vs client)
+// This file is shared between the client and the server, in case "window" is defined we assume it is the client
 }(typeof window === 'undefined' ? module.exports : window.VYW));

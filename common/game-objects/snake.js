@@ -1,4 +1,3 @@
-// This file is shared between the client and the server, in case "window" is defined we assume it is the client
 (function(parent, protocol, SnakeHead, SnakePart) {
 
 	/**
@@ -19,7 +18,7 @@
 		var part = new SnakeHead(startX, startY, partSize, color);
 		this.parts.push(part);
 
-		// grow will be used in order to create the snake parts in the correct direction
+		// grow will be used in order to create the snake parts in the correct direction (either the sanke is headed left or right)
 		var grow;
 		if (direction === protocol.Direction.Right) {
 			grow = -1;
@@ -109,7 +108,7 @@
 
 	parent.Snake = Snake;
 
-// Pass in the correct object (server vs client)
+// This file is shared between the client and the server, in case "window" is defined we assume it is the client
 }(typeof window === 'undefined' ? module.exports : window.VYW,
   typeof window === 'undefined' ? require('../protocol.js').Protocol : window.VYW.Protocol,
   typeof window === 'undefined' ? require('./snake-head.js').SnakeHead : window.VYW.SnakeHead,

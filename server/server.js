@@ -2,8 +2,9 @@ var WebSocketServer = require('ws').Server,
 	fs = require('fs'),
 	http = require('http'),
 	path = require('path'),
-	connMgr = require('./lobby.js');
+	lobby = require('./lobby.js');
 
+// The deploy directory is where we gonna server static files from
 var DEPLOY_DIR = path.resolve(__dirname, '../client/deploy');
 var DEFAULT_FILE = 'index.html';
 
@@ -24,10 +25,15 @@ var server = http.createServer(function(req, res) {
 
 	// This request if for a file
 	var file = path.join(DEPLOY_DIR, req.url);
-	serveStatic(req, res, file);
+	serveStatic(res, file);
 });
 
-function serveStatic(req, res, file) {
+/**
+ * Serves a static file
+ * @param {object} res - The response object
+ * @param {string} file - The requested file path
+ */
+function serveStatic(res, file) {
 	// Get the file statistics
 	fs.lstat(file, function(err, stat) {
 		// If err probably file does not exist
@@ -40,19 +46,21 @@ function serveStatic(req, res, file) {
 		// If this is a directory we will try to serve the default file
 		if (stat.isDirectory()) {
 			var defaultFile = path.join(file, DEFAULT_FILE);
-			serveStatic(req, res, defaultFile);
+			serveStatic(res, defaultFile);
 		} else {
+			// Pipe the file over to the response
 			fs.createReadStream(file).pipe(res);
 		}
 	});
 }
 
-server.listen(3000, function () {
-	console.log('Server listening on port 3000');
+var port = process.env.PORT || 3000;
+server.listen(port, function () {
+	console.log('Server listening on port:', port);
 });
 
-// Create the WebSocket server
+// Create the WebSocket server (it will handle "upgrade" requests)
 var wss = new WebSocketServer({server: server});
 wss.on('connection', function(ws) {
-	connMgr.add(ws);
+	lobby.add(ws);
 });

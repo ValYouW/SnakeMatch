@@ -10,22 +10,31 @@ var MAX_PELLETS = 6;
  * Represents a game update response
  * @constructor
  */
-function UpdateResponse() {
+function GameUpdateData() {
 	this.loosingSnake = -1;
 	this.pelletsUpdate = false;
 }
 
-function SnakeEngine(width, height, cellSize) {
-	this.board = new Board(width, height, cellSize);
+/**
+ * Creates a new instance of SnakeEngine
+ * The snake engine is responsible for managing the snake game on the server
+ * @param {number} width - The board width
+ * @param {number} height - The board height
+ * @param {number} boxSize - A board box size
+ * @constructor
+ */
+function SnakeEngine(width, height, boxSize) {
+	this.board = new Board(width, height, boxSize);
 
 	// The first snake is created on the left side and is heading right (very top row, y index = 0)
 	var snakeLoc = this.board.toScreen(INITIAL_SNAKE_SIZE - 1);
-	this.snake1 = new Snake(snakeLoc.x, snakeLoc.y, cellSize, INITIAL_SNAKE_SIZE, protocol.Direction.Right);
+	this.snake1 = new Snake(snakeLoc.x, snakeLoc.y, boxSize, INITIAL_SNAKE_SIZE, protocol.Direction.Right);
 
 	// The second snake is created on the right side and is heading left (very top row, y index = 0)
-	snakeLoc = this.board.toScreen(width/cellSize - INITIAL_SNAKE_SIZE);
-	this.snake2 = new Snake(snakeLoc.x, snakeLoc.y, cellSize, INITIAL_SNAKE_SIZE, protocol.Direction.Left);
+	snakeLoc = this.board.toScreen(this.board.horizontalBoxes - INITIAL_SNAKE_SIZE);
+	this.snake2 = new Snake(snakeLoc.x, snakeLoc.y, boxSize, INITIAL_SNAKE_SIZE, protocol.Direction.Left);
 
+	/** @type {Pellet[]} */
 	this.pellets = [];
 }
 
@@ -43,10 +52,10 @@ SnakeEngine.prototype.handleDirChangeMessage = function(data) {
 
 /**
  * Updates the game, if either snake has lost due to collision, return its index
- * @returns {UpdateResponse} The index of the LOOSING snake
+ * @returns {GameUpdateData} The index of the LOOSING snake
  */
 SnakeEngine.prototype.update = function() {
-	var res = new UpdateResponse();
+	var res = new GameUpdateData();
 
 	// Update snake1
 	this.snake1.update();
