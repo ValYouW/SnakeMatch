@@ -35,6 +35,12 @@
 
 		// Bind to the window key-down event
 		win.onkeydown = this.handleKeyDown.bind(this);
+
+		// Bind to touch events on the canvas
+		this.swipeTrackingData = null;
+		canvas.addEventListener('touchstart', this.handleTouchStart.bind(this));
+		canvas.addEventListener('touchmove', this.handleTouchMove.bind(this));
+		canvas.addEventListener('touchend', this.handleTouchEnd.bind(this));
 	}
 
 	/**
@@ -223,6 +229,72 @@
 		// Build a message and send it
 		var msg = VYW.Protocol.buildChangeDirection(newDir);
 		this.connector.send(msg);
+	};
+
+	/**
+	 * Handles a touch start event
+	 * @param {object} event - A touch Event
+	 */
+	SnakeEngine.prototype.handleTouchStart = function(event) {
+		// We care only about the first finger (meaning swipeTrackingData must be null)
+		var touch = event.touches[0];
+		if (!touch || this.swipeTrackingData !== null) {
+			return;
+		}
+
+		// Create a new swipeTrackingData
+		this.swipeTrackingData = {startX: touch.clientX, startY: touch.clientY};
+	};
+
+	/**
+	 * Handles a touch move event
+	 * @param {object} event - A touch Event
+	 */
+	SnakeEngine.prototype.handleTouchMove = function(event) {
+		// Don't let others handle the event
+		event.preventDefault();
+
+		// Make sure we still have 1 finger (might be redundant but whatever)
+		var touch = event.touches[0];
+		if (!touch) {
+			return;
+		}
+
+		// Update the swipe tracking end location
+		this.swipeTrackingData.endX = touch.clientX;
+		this.swipeTrackingData.endY = touch.clientY;
+	};
+
+	/**
+	 * Handles a touch end event
+	 * @param {object} event - A touch Event
+	 */
+	SnakeEngine.prototype.handleTouchEnd = function(event) {
+		// Make sure we got some data
+		if (!this.swipeTrackingData || isNaN(this.swipeTrackingData.endX) || isNaN(this.swipeTrackingData.endY)) {
+			this.swipeTrackingData = null;
+			return;
+		}
+
+		// Now we need to determine what is the swipe direction, it will never be a straight line, we check
+		// what axis had the most move
+		var horizontalMove = this.swipeTrackingData.endX - this.swipeTrackingData.startX;
+		var verticalMove = this.swipeTrackingData.endY - this.swipeTrackingData.startY;
+
+		// We give horizontal move the benefit in case they are equal
+		var keyCode = '';
+		if (Math.abs(horizontalMove) >= Math.abs(verticalMove)) {
+			// This was horizontal move, check direction
+			keyCode = horizontalMove > 0 ? VYW.KeyCodes.Right : VYW.KeyCodes.Left;
+		} else {
+			// This was vertical move, check direction
+			keyCode = verticalMove > 0 ? VYW.KeyCodes.Down : VYW.KeyCodes.Up;
+		}
+
+		// Fake a KeyDown event
+		this.handleKeyDown({keyCode: keyCode});
+
+		this.swipeTrackingData = null;
 	};
 
 	VYW.SnakeEngine = SnakeEngine;
