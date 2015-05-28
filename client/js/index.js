@@ -1,14 +1,9 @@
+/**
+ * The main js file, should be included first.
+ * Defines our namespace (VYW) and some common classes
+ */
 window.VYW = window.VYW || {};
 (function(VYW) {
-
-	/**
-	 * A game state enum
-	 */
-	VYW.GameState = {
-		Paused: 0,
-		Running: 1,
-		End: 2
-	};
 
 	/**
 	 * Keyboard key codes enum

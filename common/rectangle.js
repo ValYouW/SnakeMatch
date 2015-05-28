@@ -1,4 +1,3 @@
-// This file is shared between the client and the server, in case "window" is defined we assume it is the client
 (function(parent) {
 
 	/**
@@ -35,5 +34,5 @@
 
 	parent.Rectangle = Rectangle;
 
-// Pass in the correct object (server vs client)
+// This file is shared between the client and the server, in case "window" is defined we assume it is the client
 }(typeof window === 'undefined' ? module.exports : window.VYW));

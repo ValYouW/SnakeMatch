@@ -62,12 +62,14 @@
 	Connector.prototype.handleMessage = function(data) {
 		if (!data) {return;}
 
+		// Parse the message and make sure we got something
 		var message = VYW.Protocol.parseMessage(data);
 		if (message === null) {
 			this.disconnect(Connector.DisconnectReason.InvalidMessage);
 			return;
 		}
 
+		// Raise the appropriate event based on the message type
 		switch (message.type) {
 			case VYW.Protocol.Messages.Pending:
 				this.onPendingMatch(message);

@@ -16,6 +16,7 @@
 
 	<script type="text/javascript">
 		$(function() {
+			// Create a game-settings object
 			var settings = {
 				textColor: '#000000',
 				boardColor: '#ffffff',
@@ -24,6 +25,7 @@
 				pelletColor: '#FF6A00'
 			};
 
+			// The settings metadata for the jqPropertyGrid
 			var settingMeta = {
 				textColor: {group: 'Colors', name: 'Text', type:'color'},
 				boardColor: {group: 'Colors', name: 'Board', type:'color'},
@@ -32,6 +34,7 @@
 				pelletColor: {group: 'Colors', name: 'Pellet', type:'color'}
 			};
 
+			// Init the settings property grid
 			$('#settingsGrid').jqPropertyGrid(settings, settingMeta);
 
 			$('#btnConnect').click(function() {
@@ -41,12 +44,15 @@
 					return;
 				}
 
+				// Get the canvas element and the game settings
 				var canvas = document.getElementById('boardPane');
 				var settings = $('#settingsGrid').jqPropertyGrid('get');
 
+				// Create the connector and the game object
 				var connector = new VYW.Connector(location.host);
 				var game = new VYW.SnakeEngine(canvas, connector, settings);
 
+				// Remove the focus from the connect button
 				this.blur();
 			});
 		});

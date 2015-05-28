@@ -54,5 +54,5 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.registerTask('default', ['jshint', 'concat']);
-	grunt.registerTask('client', ['concat']);
+	grunt.registerTask('build', ['concat']);
 };
