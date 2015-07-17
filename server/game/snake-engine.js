@@ -177,6 +177,16 @@ SnakeEngine.prototype.addPellet = function() {
 		}
 
 		if (!keepSearch) {
+			// check that this spot is not on existing pellet
+			for (i = 0; i < this.pellets.length; ++i) {
+				if (this.pellets[i].location.equals(loc)) {
+					keepSearch = true;
+					break;
+				}
+			}
+		}
+
+		if (!keepSearch) {
 			// Hooray we can add the pellet
 			this.pellets.push(new Pellet(loc));
 		}
